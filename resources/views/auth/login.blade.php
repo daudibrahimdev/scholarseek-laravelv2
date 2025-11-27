@@ -1,48 +1,136 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
-        <x-validation-errors class="mb-4" />
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>
+        {{ config('app.name', 'Laravel') }} | Login
+    </title>
+    
+    <link href="{{ asset('assets/img/brand/favicon.png') }}" rel="icon" type="image/png">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+    <link href="{{ asset('assets/js/plugins/nucleo/css/nucleo.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets/js/plugins/@fortawesome/fontawesome-free/css/all.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets/css/argon-dashboard.css?v=1.1.2') }}" rel="stylesheet" />
+    
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
 
-        @session('status')
-            <div class="mb-4 font-medium text-sm text-green-600">
-                {{ $value }}
+<body class="bg-default">
+    <div class="main-content">
+        
+        <div class="header bg-gradient-primary py-7 py-lg-8">
+            <div class="container">
+                <div class="header-body text-center mb-7">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-5 col-md-6">
+                            <h1 class="text-white">Welcome Back!</h1>
+                            <p class="text-lead text-light">Sign in to your ScholarSeek account.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        @endsession
-
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
-
-            <div>
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <div class="separator separator-bottom separator-skew zindex-100">
+                <svg x="0" y="0" viewBox="0 0 2560 100" preserveAspectRatio="none" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                    <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
+                </svg>
             </div>
+        </div>
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
+        <div class="container mt--8 pb-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-7">
+                    <div class="card bg-secondary shadow border-0">
+                        
+                        <div class="p-4">
+                            <x-validation-errors class="mb-4" /> 
+                            
+                            @session('status')
+                                <div class="mb-4 font-medium text-sm text-success">
+                                    {{ $value }}
+                                </div>
+                            @endsession
+                        </div>
+                        
+                        <div class="card-header bg-transparent pb-5">
+                            <div class="text-muted text-center mt-2 mb-3"><small>Sign in with</small></div>
+                            <div class="btn-wrapper text-center">
+                                
+                                <a href="#" class="btn btn-neutral btn-icon">
+                                    <span class="btn-inner--icon"><img src="{{ asset('assets/img/icons/common/github.svg') }}"></span>
+                                    <span class="btn-inner--text">Github</span>
+                                </a>
+                                
+                                <a href="#" class="btn btn-neutral btn-icon">
+                                    <span class="btn-inner--icon"><img src="{{ asset('assets/img/icons/common/google.svg') }}"></span>
+                                    <span class="btn-inner--text">Google</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body px-lg-5 py-lg-5">
+                            <div class="text-center text-muted mb-4">
+                                <small>Or sign in with credentials</small>
+                            </div>
+                            
+                            <form method="POST" action="{{ route('login') }}" role="form">
+                                @csrf 
+                                
+                                <div class="form-group mb-3">
+                                    <div class="input-group input-group-alternative">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="ni ni-email-83"></i></span>
+                                        </div>
+                                        <input class="form-control" placeholder="Email" type="email"
+                                            name="email" id="email" value="{{ old('email') }}" required autofocus autocomplete="username">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="input-group input-group-alternative">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
+                                        </div>
+                                        <input class="form-control" placeholder="Password" type="password"
+                                            name="password" id="password" required autocomplete="current-password">
+                                    </div>
+                                </div>
+                                
+                                <div class="custom-control custom-control-alternative custom-checkbox">
+                                    <input class="custom-control-input" id="remember_me" type="checkbox" name="remember">
+                                    <label class="custom-control-label" for="remember_me">
+                                        <span class="text-muted">Remember me</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary my-4">Sign in</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            @if (Route::has('password.request'))
+                                <a href="{{ route('password.request') }}" class="text-light"><small>Forgot password?</small></a>
+                            @endif
+                        </div>
+                        <div class="col-6 text-right">
+                            <a href="{{ route('register') }}" class="text-light"><small>Create new account</small></a>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="block mt-4">
-                <label for="remember_me" class="flex items-center">
-                    <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-                </label>
-            </div>
-
-            <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
-
-                <x-button class="ms-4">
-                    {{ __('Log in') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
-</x-guest-layout>
+        </div>
+    </div>
+    
+    <script src="{{ asset('assets/js/plugins/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <script src="{{ asset('assets/js/argon-dashboard.min.js?v=1.1.2') }}"></script>
+    
+</body>
+</html>

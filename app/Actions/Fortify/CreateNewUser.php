@@ -29,6 +29,10 @@ class CreateNewUser implements CreatesNewUsers
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
+
+            // Ini untuk set default role dan is_active saat registrasi (dan supaya tidak bisa diubah ZIDAN lewat form registrasi)
+            'role' => 'mentee',       
+            'is_active' => false,
             'password' => Hash::make($input['password']),
         ]);
     }
