@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\Models\User; 
 
+use App\Models\DocumentCategory;
+
 use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
@@ -35,6 +37,15 @@ class AdminController extends Controller
             return redirect('login');
         }
         
+    }
+    public function kategori_dokumen()
+    {
+        return view('admin.documents.category');
+    }
+
+    public function tambah_kategori(Request $request)
+    {
+        return view('admin.documents.add_category');
     }
 }
 
