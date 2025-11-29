@@ -4,6 +4,8 @@
     use App\Http\Controllers\AdminController;
     use App\Http\Controllers\DocumentCategoryController;
     use App\Http\Controllers\DocumentController;
+    use App\Http\Controllers\ScholarshipCategoryController;
+    use App\Http\Controllers\ScholarshipController;
 
     Route::get('/', function () {
     return view('welcome');
@@ -44,4 +46,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // url: /admin/documents
          Route::resource('documents', DocumentController::class)
          ->names('documents');
+
+    // Route Resource untuk Kategori Beasiswa
+    // URL: /admin/scholarship-categories
+    Route::resource('scholarship-categories', ScholarshipCategoryController::class)
+         ->names('scholarship.categories');
+
+    // Route Resource untuk Beasiswa Utama
+    // URL: /admin/scholarships
+    Route::resource('scholarships', ScholarshipController::class)
+         ->names('scholarship');
+
 });

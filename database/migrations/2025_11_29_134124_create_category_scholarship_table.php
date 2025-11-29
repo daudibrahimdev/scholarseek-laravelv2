@@ -12,8 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('category_scholarship', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            // FK ke tabel scholarships
+        $table->foreignId('scholarship_id')->constrained('scholarships')->onDelete('cascade');
+        
+        // FK ke tabel scholarship_categories
+        $table->foreignId('scholarship_category_id')->constrained('scholarship_categories')->onDelete('cascade');
+        
+        // Kedua kolom FK sebagai primary key komposit
+        $table->primary(['scholarship_id', 'scholarship_category_id']);
         });
     }
 

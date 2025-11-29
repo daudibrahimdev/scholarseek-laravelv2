@@ -53,10 +53,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="ni ni-briefcase-24 text-green"></i>
-                        <span class="nav-link-text">Scholarships Categories</span>
-                    </a>
+                {{-- Tautan untuk Halaman Kategori Beasiswa (scholarship_categories.index) --}}
+                <a class="nav-link {{ Request::routeIs('admin.scholarship.categories.index') ? 'active' : '' }}" 
+                    href="{{ route('admin.scholarship.categories.index') }}">
+                    <i class="ni ni-tag text-purple"></i>
+                    <span class="nav-link-text">Manage Scholarship Categories</span>
+                </a>
                 </li>
                 {{-- <li class="nav-item mt-3">
                     <h6 class="navbar-heading text-muted">Settings</h6>

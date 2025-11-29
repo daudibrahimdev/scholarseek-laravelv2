@@ -45,7 +45,8 @@ class AdminController extends Controller
 
     public function tambah_kategori(Request $request)
     {
-        return view('admin.documents.add_category');
+        
+        
     }
 }
 

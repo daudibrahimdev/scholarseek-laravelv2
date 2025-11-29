@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('scholarships', function (Blueprint $table) {
             $table->id();
+            $table->string('title', 255)->unique();
+            $table->string('provider', 150);
+            $table->text('description');
+            $table->date('start_date')->nullable();
+            $table->date('deadline');
+            $table->string('link_url', 2048)->nullable();
             $table->timestamps();
         });
     }
