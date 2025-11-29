@@ -3,6 +3,7 @@
     use Illuminate\Support\Facades\Route;
     use App\Http\Controllers\AdminController;
     use App\Http\Controllers\DocumentCategoryController;
+    use App\Http\Controllers\DocumentController;
 
     Route::get('/', function () {
     return view('welcome');
@@ -38,4 +39,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // URL: /admin/document-categories
     Route::resource('document-categories', DocumentCategoryController::class)
          ->names('document.categories'); 
+
+    // Route Resource untuk Dokume
+    // url: /admin/documents
+         Route::resource('documents', DocumentController::class)
+         ->names('documents');
 });

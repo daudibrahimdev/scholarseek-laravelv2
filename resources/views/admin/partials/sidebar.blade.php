@@ -34,13 +34,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.document.categories.index') }}">
+                    <a class="nav-link" href="{{ route('admin.documents.index') }}">
                         <i class="ni ni-archive-2 text-orange"></i>
                         <span class="nav-link-text">Manage Documents</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ route('admin.document.categories.index') }}">
                         <i class="ni ni-folder-17 text-info"></i>
                         <span class="nav-link-text">Document Categories</span>
                     </a>
