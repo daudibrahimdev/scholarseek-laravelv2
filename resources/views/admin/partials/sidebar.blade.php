@@ -28,8 +28,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="ni ni-single-02 text-yellow"></i>
+                    <a class="nav-link {{ Request::routeIs('admin.users.index') ? 'active' : '' }}" 
+                    href="{{ route('admin.users.index') }}">
+                        <i class="ni ni-single-02 text-info"></i>
                         <span class="nav-link-text">Manage Users</span>
                     </a>
                 </li>

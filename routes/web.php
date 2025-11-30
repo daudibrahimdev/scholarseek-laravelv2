@@ -6,6 +6,7 @@
     use App\Http\Controllers\DocumentController;
     use App\Http\Controllers\ScholarshipCategoryController;
     use App\Http\Controllers\ScholarshipController;
+    use App\Http\Controllers\UserController;
 
     Route::get('/', function () {
     return view('welcome');
@@ -56,5 +57,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // URL: /admin/scholarships
     Route::resource('scholarships', ScholarshipController::class)
          ->names('scholarship');
+
+    // Route Resource untuk Pengguna (Hanya index)
+    Route::resource('users', UserController::class)->only(['index']);
+
+    // Route Khusus Aksi Mentor
+    Route::post('users/mentor/{mentor}/approve', [UserController::class, 'approveMentor'])->name('users.mentor.approve');
+    Route::post('users/mentor/{mentor}/reject', [UserController::class, 'rejectMentor'])->name('users.mentor.reject');
+
+    // Route Khusus Aksi User Status
+    Route::post('users/{user}/toggle-status', [UserController::class, 'toggleUserStatus'])->name('users.toggle-status');
 
 });
