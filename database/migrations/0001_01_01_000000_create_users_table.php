@@ -18,7 +18,8 @@ return new class extends Migration
 
             // penambahan kolom role dan is_active
             $table->enum('role', ['mentee', 'mentor', 'admin'])->default('mentee');
-            $table->boolean('is_active')->default(false);
+            // diganti jadi true karena mentee harus aktif secara default
+            $table->boolean('is_active')->default(true);
 
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

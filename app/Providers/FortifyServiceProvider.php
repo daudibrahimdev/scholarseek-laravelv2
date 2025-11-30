@@ -14,6 +14,12 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 
+use Illuminate\Support\Facades\Hash; // <--- tambahan untuk hash password
+use Illuminate\Validation\ValidationException; // <--- tambahan untuk validasi
+
+// tambahan untuk model User
+use App\Models\User;
+
 class FortifyServiceProvider extends ServiceProvider
 {
     /**
@@ -43,6 +49,25 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
+        });
+
+        // Custom logic buat cek status is_active pas login
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::where('email', $request->email)->first();
+
+            // 1. Cek User dan Password (standar)
+            if ($user && Hash::check($request->password, $user->password)) {
+                
+                // 2. Cek Logika Keamanan BARU: is_active
+                if ($user->is_active) {
+                    return $user; // Lolos, izinkan login
+                } else {
+                    // Gagal: User non-aktif
+                    throw ValidationException::withMessages([
+                        'email' => __('Akun Anda belum diaktifkan oleh Admin, atau sudah dinonaktifkan.'),
+                    ]);
+                }
+            }
         });
     }
 }

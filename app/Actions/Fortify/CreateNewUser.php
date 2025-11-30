@@ -32,7 +32,7 @@ class CreateNewUser implements CreatesNewUsers
 
             // Ini untuk set default role dan is_active saat registrasi (dan supaya tidak bisa diubah ZIDAN lewat form registrasi)
             'role' => 'mentee',       
-            'is_active' => false,
+            // 'is_active' => false, // di comment karena mentee harus aktif secara default
             'password' => Hash::make($input['password']),
         ]);
     }

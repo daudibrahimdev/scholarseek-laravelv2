@@ -7,6 +7,7 @@
     use App\Http\Controllers\ScholarshipCategoryController;
     use App\Http\Controllers\ScholarshipController;
     use App\Http\Controllers\UserController;
+    use App\Http\Controllers\MenteeController;
 
     Route::get('/', function () {
     return view('welcome');
@@ -27,6 +28,17 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+});
+
+// Group Route untuk MENTEE
+// URL: /mentee/*
+Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->group(function () {
+    
+    // Route Dashboard Mentee (TARGET REDIRECTION)
+    // Nama route: mentee.index
+    Route::get('/', [MenteeController::class, 'index'])->name('index'); 
+    
+    // ... route mentee lainnya
 });
 
 
