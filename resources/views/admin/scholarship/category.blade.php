@@ -191,6 +191,22 @@
                 </div>
                 <div class="card-footer py-4">
                     {{-- Pagination Links --}}
+                    <nav aria-label="...">
+                        <div class="row">
+                            {{-- Bagian 1: Informasi Total Data (Opsional) --}}
+                            <div class="col-md-6 pt-2">
+                                <span class="text-muted">
+                                    Menampilkan {{ $categories->firstItem() }} hingga {{ $categories->lastItem() }} dari total {{ $categories->total() }} kategori
+                                </span>
+                            </div>
+                            
+                            {{-- Bagian 2: Link Pagination --}}
+                            <div class="col-md-6 d-flex justify-content-end">
+                                {{ $categories->links('pagination::bootstrap-4') }} 
+                                {{-- Kita gunakan template default Bootstrap 4 Laravel --}}
+                            </div>
+                        </div>
+                    </nav>
                 </div>
             </div>
         </div>

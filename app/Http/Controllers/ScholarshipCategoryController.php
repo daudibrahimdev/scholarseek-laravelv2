@@ -14,7 +14,7 @@ class ScholarshipCategoryController extends Controller
      */
     public function index()
     {
-        $categories = ScholarshipCategory::orderBy('name')->get();
+        $categories = ScholarshipCategory::orderBy('name')->paginate(10);;
         return view('admin.scholarship.category', compact('categories'));
     }
 
