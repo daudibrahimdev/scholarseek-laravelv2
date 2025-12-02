@@ -62,7 +62,7 @@ class UserController extends Controller
         // 2. Gunakan Transaksi Database
         DB::transaction(function () use ($mentor) {
             // A. Update status di tabel mentors
-            $mentor->update(['verification_status' => 'approved']);
+            $mentor->update(['verification_status' => 'verified']);
 
             // B. Update role di tabel users menjadi 'mentor'
             $mentor->user->update(['role' => 'mentor']);

@@ -72,7 +72,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
          ->names('scholarship');
 
     // Route Resource untuk Pengguna (Hanya index)
-    Route::resource('users', UserController::class)->only(['index'])->names('users');
+    Route::resource('users', UserController::class)->only(['index']);
 
     // Route Khusus Aksi Mentor
     Route::post('users/mentor/{mentor}/approve', [UserController::class, 'approveMentor'])->name('users.mentor.approve');
