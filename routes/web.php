@@ -9,6 +9,7 @@
     use App\Http\Controllers\UserController;
     use App\Http\Controllers\MenteeController;
     use App\Http\Controllers\MentorApplicationController;
+    use App\Http\Controllers\MentorController;
 
     Route::get('/', function () {
     return view('welcome');
@@ -97,3 +98,22 @@ Route::middleware([
     Route::get('/mentor/register', [MentorApplicationController::class, 'showForm'])->name('mentor.register.form');
     Route::post('/mentor/register', [MentorApplicationController::class, 'store'])->name('mentor.register.store');
 });
+
+Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->group(function () {
+    
+    // Route Dashboard Mentor (TARGET REDIRECTION)
+    // Nama route: mentor.dashboard.index
+    Route::get('/dashboard', [MentorController::class, 'index'])->name('dashboard.index'); 
+    
+    // debugging route daftar mentee
+    Route::get('/mentees', [MentorController::class, 'listAssignedMentees'])->name('mentees.index');
+    Route::get('/schedule', [MentorController::class, 'indexSchedule'])->name('schedule.index');
+    Route::get('/finance', [MentorController::class, 'indexFinance'])->name('finance.index');
+    Route::get('/reviews', [MentorController::class, 'indexReviews'])->name('reviews.index');
+    
+    // ... route mentor lainnya (profil, jadwal)
+});
+
+
+
+    

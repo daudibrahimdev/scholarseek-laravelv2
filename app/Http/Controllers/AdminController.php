@@ -29,7 +29,7 @@ class AdminController extends Controller
             }
             else if($userRole == 'mentor')
             {
-                return redirect()->route('mentor.index');
+                return redirect()->route('mentor.dashboard.index');
             }
         } 
         else
