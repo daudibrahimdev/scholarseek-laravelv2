@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Mentor;
+use App\Models\Transaction;
 use App\Models\UserPackage;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,7 +41,46 @@ class MentorController extends Controller
     }
     public function indexFinance()
     {
-        return view('mentor.finance.index');
+        $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
+
+        // 1. Ambil semua transaksi milik mentor ini
+        $transactions = Transaction::where('mentor_id', $mentor->id)
+                                   ->latest()
+                                   ->get();
+
+        // 2. Hitung Statistik
+        
+        // A. Total Penarikan (Uang yang sudah dicairkan)
+        // type = 'withdrawal', status = 'paid'
+        $totalWithdrawal = $transactions->where('type', 'withdrawal')
+                                        ->where('status', 'paid')
+                                        ->sum('amount');
+
+        // B. Pendapatan Bulan Ini (Pemasukan dari pembelian paket mentee)
+        // type = 'purchase', status = 'paid', bulan ini
+        $incomeThisMonth = $transactions->where('type', 'purchase')
+                                        ->where('status', 'paid')
+                                        ->filter(function ($t) {
+                                            return $t->created_at->isCurrentMonth();
+                                        })
+                                        ->sum('amount');
+
+        // C. Pendapatan Tertunda (Belum cair/masih pending)
+        // Bisa berupa purchase yang belum paid, atau withdrawal yang masih pending
+        $pendingAmount = $transactions->where('status', 'pending')->sum('amount');
+        $pendingCount = $transactions->where('status', 'pending')->count();
+
+        // D. History Penarikan (Untuk tabel bawah)
+        $withdrawalHistory = $transactions->where('type', 'withdrawal');
+
+        return view('mentor.finance.index', compact(
+            'transactions', 
+            'totalWithdrawal', 
+            'incomeThisMonth', 
+            'pendingAmount', 
+            'pendingCount',
+            'withdrawalHistory'
+        ));
     }
     public function indexReviews()
     {
