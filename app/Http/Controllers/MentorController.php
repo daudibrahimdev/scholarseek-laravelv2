@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Mentor;
+use App\Models\UserPackage;
+use Illuminate\Support\Facades\Auth;
+
+use Illuminate\Support\Facades\Storage;
 
 class MentorController extends Controller
 {
@@ -14,9 +19,20 @@ class MentorController extends Controller
         return view('mentor.dashboard.index');
     }
     // debugging method daftar mentee dll
-    public function listAssignedmentees()
+    public function listAssignedMentees()
     {
-        return view('mentor.mentees.index');
+        // 1. Ambil ID Mentor yang sedang login
+        $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
+
+        // 2. Ambil data dari tabel user_packages 
+        // Dimana mentor_id sesuai dengan mentor yang login
+        $assignedMentees = UserPackage::with(['mentee', 'package']) // Eager load User(mentee) dan Paket
+                                      ->where('mentor_id', $mentor->id)
+                                      ->orderBy('created_at', 'desc')
+                                      ->get();
+
+        // 3. Kirim ke view
+        return view('mentor.mentees.index', compact('assignedMentees'));
     }
     public function indexSchedule()
     {
@@ -29,6 +45,15 @@ class MentorController extends Controller
     public function indexReviews()
     {
         return view('mentor.reviews.index');
+    }
+
+    /**
+     * Menampilkan form edit profil mentor.
+     */
+    public function editProfile()
+    {
+        $mentor = Mentor::where('user_id', Auth::id())->with('user')->firstOrFail();
+        return view('mentor.profile.edit', compact('mentor'));
     }
 
     /**
@@ -64,11 +89,46 @@ class MentorController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+ * Memperbarui data profil mentor.
+ */
+    public function updateProfile(Request $request)
     {
-        //
+        $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
+        $user = Auth::user();
+
+        // 1. Validasi
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'bio' => 'nullable|string',
+            'domicile_city' => 'required|string|max:100',
+            'phone_number' => 'required|string|max:15',
+            'profile_picture' => 'nullable|image|max:2048', // Max 2MB
+        ]);
+
+        // 2. Update User (Nama & Email)
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        // 3. Update Mentor Profile
+        $data = $request->only(['bio', 'domicile_city', 'full_address', 'phone_number']);
+        
+        // Handle File Upload (Profile Picture)
+        if ($request->hasFile('profile_picture')) {
+            // Hapus foto lama jika ada
+            if ($mentor->profile_picture) {
+                Storage::delete('public/' . $mentor->profile_picture);
+            }
+            
+            $path = $request->file('profile_picture')->store('public/mentor/profile');
+            $data['profile_picture'] = str_replace('public/', '', $path);
+        }
+
+        $mentor->update($data);
+
+        return redirect()->route('mentor.profile.edit')->with('success', 'Profil berhasil diperbarui!');
     }
 
     /**

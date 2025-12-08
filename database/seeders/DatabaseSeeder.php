@@ -21,5 +21,12 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Memanggil PackageSeeder untuk menambahkan data paket awal
+        $this->call([
+            // UserSeeder::class, // Buat nanti jika perlu
+            // MentorSeeder::class, // Buat nanti jika perlu
+            PackageSeeder::class, //from database/seeders/PackageSeeder.php
+        ]);
     }
 }

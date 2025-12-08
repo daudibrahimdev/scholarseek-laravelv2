@@ -25,7 +25,7 @@
     <div class="main-content">
         
         {{-- NAVBAR ADMIN/MENTOR --}}
-        @include('admin.partials.navbar') {{-- Kita asumsikan Navbar sama persis --}}
+        @include('mentor.partials.navbar') {{-- Kita asumsikan Navbar sama persis --}}
         
         <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
             <div class="container-fluid">

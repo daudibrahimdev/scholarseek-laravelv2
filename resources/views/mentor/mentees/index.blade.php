@@ -61,58 +61,78 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-items-center table-flush">
-                        <thead class="thead-light">
-                            <tr>
-                                <th scope="col">Nama Mentee</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Status Sesi</th>
-                                <th scope="col">Terakhir Aktif</th>
-                                <th scope="col">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {{-- DATA STATIS MENTEE --}}
-                            <tr>
-                                <td>Ahmad Rizky</td>
-                                <td>ahmad.rizky@mail.com</td>
-                                <td>
-                                    <span class="badge badge-success">Sesi Dikonfirmasi</span>
-                                </td>
-                                <td>Hari Ini</td>
-                                <td>
-                                    <a href="#!" class="btn btn-sm btn-info">Lihat Detail</a>
-                                    <a href="#!" class="btn btn-sm btn-warning">Sesi Baru</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Sarah Devi</td>
-                                <td>sarah.devi@mail.com</td>
-                                <td>
-                                    <span class="badge badge-warning">Pending Konfirmasi</span>
-                                </td>
-                                <td>Kemarin</td>
-                                <td>
-                                    <a href="#!" class="btn btn-sm btn-info">Lihat Detail</a>
-                                    <a href="#!" class="btn btn-sm btn-success">Setujui Sesi</a>
-                                </td>
-                            </tr>
-                             <tr>
-                                <td>Citra Dewi</td>
-                                <td>citra.d@mail.com</td>
-                                <td>
-                                    <span class="badge badge-primary">Sesi Selesai</span>
-                                </td>
-                                <td>1 Minggu Lalu</td>
-                                <td>
-                                    <a href="#!" class="btn btn-sm btn-info">Lihat Detail</a>
-                                    <a href="#!" class="btn btn-sm btn-warning">Sesi Baru</a>
-                                </td>
-                            </tr>
-                            {{-- Data lainnya akan di-loop secara dinamis --}}
-                        </tbody>
-                    </table>
-                </div>
+    <table class="table align-items-center table-flush">
+        <thead class="thead-light">
+            <tr>
+                <th scope="col">Nama Mentee</th>
+                <th scope="col">Paket Diambil</th>
+                <th scope="col">Sisa Kuota</th>
+                <th scope="col">Status Paket</th>
+                <th scope="col">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{-- LOOP DATA DINAMIS DARI DATABASE --}}
+            @forelse ($assignedMentees as $data)
+            <tr>
+                <th scope="row">
+                    <div class="media align-items-center">
+                        <a href="#" class="avatar rounded-circle mr-3">
+                            {{-- Gunakan foto profil mentee atau default --}}
+                            <img alt="Image placeholder" src="{{ $data->mentee->profile_photo_url ?? asset('assets/img/theme/team-1-800x800.jpg') }}">
+                        </a>
+                        <div class="media-body">
+                            <span class="mb-0 text-sm">{{ $data->mentee->name }}</span>
+                            <br>
+                            <small class="text-muted">{{ $data->mentee->email }}</small>
+                        </div>
+                    </div>
+                </th>
+                <td>
+                    {{ $data->package->name }}
+                </td>
+                <td>
+                    <span class="text-{{ $data->remaining_quota > 0 ? 'success' : 'danger' }} font-weight-bold">
+                        {{ $data->remaining_quota }} Sesi
+                    </span>
+                </td>
+                <td>
+                    {{-- Badge Status --}}
+                    @php
+                        $badgeClass = match($data->status) {
+                            'active' => 'success',
+                            'pending_assignment' => 'warning',
+                            'used_up' => 'danger',
+                            'expired' => 'secondary',
+                            default => 'primary'
+                        };
+                    @endphp
+                    <span class="badge badge-dot mr-4">
+                        <i class="bg-{{ $badgeClass }}"></i> {{ ucfirst(str_replace('_', ' ', $data->status)) }}
+                    </span>
+                </td>
+                <td class="text-right">
+                    <div class="dropdown">
+                        <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
+                            <a class="dropdown-item" href="#">Lihat Detail Profil</a>
+                            <a class="dropdown-item" href="#">Riwayat Sesi</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="5" class="text-center">
+                    <p class="text-muted mb-0">Belum ada Mentee yang ditugaskan kepada Anda.</p>
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
                 <div class="card-footer py-4">
                     {{-- Pagination (Placeholder) --}}
                 </div>

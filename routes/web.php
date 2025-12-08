@@ -10,6 +10,10 @@
     use App\Http\Controllers\MenteeController;
     use App\Http\Controllers\MentorApplicationController;
     use App\Http\Controllers\MentorController;
+    use App\Http\Controllers\LearningSessionController;
+    use App\Http\Controllers\BookingController;
+
+    
 
     Route::get('/', function () {
     return view('welcome');
@@ -41,6 +45,7 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
     Route::get('/', [MenteeController::class, 'index'])->name('index'); 
     
     // ... route mentee lainnya
+    Route::post('/sessions/book', [BookingController::class, 'store'])->name('sessions.book.store');
 });
 
 
@@ -107,11 +112,19 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
     
     // debugging route daftar mentee
     Route::get('/mentees', [MentorController::class, 'listAssignedMentees'])->name('mentees.index');
-    Route::get('/schedule', [MentorController::class, 'indexSchedule'])->name('schedule.index');
     Route::get('/finance', [MentorController::class, 'indexFinance'])->name('finance.index');
     Route::get('/reviews', [MentorController::class, 'indexReviews'])->name('reviews.index');
     
     // ... route mentor lainnya (profil, jadwal)
+    Route::resource('sessions', LearningSessionController::class)
+         ->names('sessions');
+
+    // Route Schedule Mentor
+    Route::get('/schedule', [LearningSessionController::class, 'index'])->name('schedule.index');
+
+    // Route Edit dan Update Profil Mentor
+    Route::get('/profile', [MentorController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile', [MentorController::class, 'updateProfile'])->name('profile.update');
 });
 
 

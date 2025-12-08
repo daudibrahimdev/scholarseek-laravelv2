@@ -1,0 +1,238 @@
+@extends('layouts.mentor_master')
+
+@section('sidebar')
+    @include('mentor.partials.sidebar')
+@endsection
+
+@section('title', 'Profil Saya')
+
+{{-- CSS Tambahan untuk Efek Hover Foto Profil --}}
+@push('css')
+<style>
+    .profile-picture-container {
+        position: relative;
+        display: inline-block;
+        cursor: pointer; /* Ubah kursor jadi pointer */
+        /* Pastikan container tidak melebihi ukuran gambar */
+        width: 180px; 
+        height: 180px;
+    }
+    /* Override style default template agar gambar pas */
+    .card-profile-image img {
+        max-width: 180px;
+        height: 180px;
+        object-fit: cover; /* Agar gambar tidak gepeng */
+    }
+
+    .profile-picture-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Warna hitam transparan */
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0; /* Sembunyikan secara default */
+        transition: opacity 0.3s ease;
+        border-radius: 50%; /* Biar bunder ngikutin foto */
+        /* Koreksi posisi overlay agar pas dengan gambar yang ditarik ke atas */
+        transform: translate(-50%, 0);
+        left: 50%;
+    }
+    /* Tampilkan overlay pas di-hover */
+    .profile-picture-container:hover .profile-picture-overlay {
+        opacity: 1;
+    }
+</style>
+@endpush
+
+{{-- Header Profile (Background Image Only - Teks Dihapus) --}}
+{{-- @section('header_stats')
+    <div class="header pb-8 pt-5 pt-lg-8 d-flex align-items-center" style="min-height: 600px; background-image: url({{ asset('assets/img/theme/profile-cover.jpg') }}); background-size: cover; background-position: center top;">
+        <span class="mask bg-gradient-default opacity-8"></span>
+        <div class="container-fluid d-flex align-items-center">
+            
+        </div>
+    </div>
+@endsection --}}
+
+@section('content')
+    <div class="row">
+        {{-- KARTU PROFIL (Kanan) --}}
+        <div class="col-xl-4 order-xl-2 mb-5 mb-xl-0">
+            <div class="card card-profile shadow">
+                <div class="row justify-content-center">
+                    {{-- REVISI 3: Ubah col-lg-3 jadi col-auto agar dinamis di tengah --}}
+                    <div class="col-auto order-lg-2">
+                        {{-- FOTO PROFIL DINAMIS (SEKARANG BISA DIKLIK) --}}
+                        <div class="card-profile-image profile-picture-container" id="profile-picture-trigger">
+                            <img id="profile-picture-preview" src="{{ $mentor->profile_picture ? asset('storage/' . $mentor->profile_picture) : asset('assets/img/theme/team-4-800x800.jpg') }}" class="rounded-circle">
+                            {{-- Overlay yang muncul pas hover --}}
+                            <div class="profile-picture-overlay">
+                                <span class="text-sm font-weight-bold"><i class="fas fa-camera mr-1"></i> Ganti</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{-- REVISI 2: Bagian Tombol Connect/Message Dihapus --}}
+                <div class="card-header text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
+                   {{-- Kosong (spacer) --}}
+                </div>
+                <div class="card-body pt-0 pt-md-4">
+                    <div class="row">
+                        <div class="col">
+                            <div class="card-profile-stats d-flex justify-content-center mt-md-5">
+                                <div>
+                                    <span class="heading">22</span>
+                                    <span class="description">Sesi</span>
+                                </div>
+                                <div>
+                                    <span class="heading">10</span>
+                                    <span class="description">Ulasan</span>
+                                </div>
+                                <div>
+                                    <span class="heading">89</span>
+                                    <span class="description">Mentee</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <h3>
+                            {{ Auth::user()->name }}
+                            @if($mentor->domicile_city)
+                                <span class="font-weight-light">, {{ $mentor->domicile_city }}</span>
+                            @endif
+                        </h3>
+                        @if($mentor->domicile_city)
+                            <div class="h5 font-weight-300">
+                                <i class="ni location_pin mr-2"></i>{{ $mentor->domicile_city }}
+                            </div>
+                        @endif
+                        <div class="h5 mt-4">
+                            <i class="ni business_briefcase-24 mr-2"></i>Mentor - ScholarSeek
+                        </div>
+                        <hr class="my-4" />
+                        <p>{{ Str::limit($mentor->bio, 150) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- FORM EDIT PROFIL (Kiri) --}}
+        <div class="col-xl-8 order-xl-1">
+            <div class="card bg-secondary shadow">
+                <div class="card-header bg-white border-0">
+                    <div class="row align-items-center">
+                        <div class="col-8">
+                            <h3 class="mb-0">Akun Saya</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {{-- Alert --}}
+                    @if (session('success'))
+                        <div class="alert alert-success">{{ session('success') }}</div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('mentor.profile.update') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+                        
+                        <h6 class="heading-small text-muted mb-4">Informasi User</h6>
+                        <div class="pl-lg-4">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label class="form-control-label" for="input-username">Nama Lengkap</label>
+                                        <input type="text" name="name" id="input-username" class="form-control form-control-alternative" value="{{ old('name', Auth::user()->name) }}">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label class="form-control-label" for="input-email">Email address</label>
+                                        <input type="email" name="email" id="input-email" class="form-control form-control-alternative" value="{{ old('email', Auth::user()->email) }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4" />
+                        <h6 class="heading-small text-muted mb-4">Informasi Mentor</h6>
+                        <div class="pl-lg-4">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-control-label" for="input-address">Alamat Lengkap</label>
+                                        <input name="full_address" id="input-address" class="form-control form-control-alternative" placeholder="Alamat Lengkap" value="{{ old('full_address', $mentor->full_address) }}" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label class="form-control-label" for="input-city">Kota Domisili</label>
+                                        <input type="text" name="domicile_city" id="input-city" class="form-control form-control-alternative" placeholder="City" value="{{ old('domicile_city', $mentor->domicile_city) }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4" />
+                        <h6 class="heading-small text-muted mb-4">Bio & Keahlian</h6>
+                        <div class="pl-lg-4">
+                            <div class="form-group">
+                                <label>Bio</label>
+                                <textarea rows="4" name="bio" class="form-control form-control-alternative" placeholder="Ceritakan tentang diri Anda...">{{ old('bio', $mentor->bio) }}</textarea>
+                            </div>
+                            
+                            {{-- INPUT FILE TERSEMBUNYI (Dipicu oleh klik pada foto profil) --}}
+                            <input type="file" name="profile_picture" id="profile-picture-input" style="display: none;" accept="image/*">
+
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary mt-4">Simpan Perubahan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('js')
+<script>
+    $(document).ready(function() {
+        // 1. Ketika foto profil diklik, klik juga input file yang tersembunyi
+        $('#profile-picture-trigger').on('click', function() {
+            $('#profile-picture-input').click();
+        });
+
+        // 2. Tampilkan preview gambar setelah file dipilih
+        $('#profile-picture-input').on('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Ubah src gambar di kartu kanan jadi gambar baru
+                    $('#profile-picture-preview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+</script>
+@endpush

@@ -1,13 +1,10 @@
-{{-- Admin Sidebar (vertical sidenav for Argon) --}}
 <nav class="sidenav navbar navbar-vertical fixed-left navbar-expand-xs navbar-light bg-white" id="sidenav-main">
     <div class="scrollbar-inner">
-        <!-- Brand -->
         <div class="sidenav-header d-flex align-items-center">
             <a class="navbar-brand" href="{{ url('/') }}">
                 <img src="{{ asset('assets/img/brand/blue.png') }}" class="navbar-brand-img" alt="ScholarSeek">
             </a>
             <div class="ml-auto">
-                <!-- collapse icon for small screens -->
                 <div class="sidenav-toggler d-none d-xl-block" data-action="sidenav-pin" data-target="#sidenav-main">
                     <div class="sidenav-toggler-inner">
                         <i class="sidenav-toggler-line"></i>
@@ -19,17 +16,18 @@
         </div>
 
         <div class="navbar-inner">
-            <!-- Navigation -->
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="/home">
+                    {{-- Ganti /home dengan route dashboard mentor yang benar --}}
+                    <a class="nav-link {{ Request::routeIs('mentor.dashboard.index') ? 'active' : '' }}" 
+                       href="{{ route('mentor.dashboard.index') }}">
                         <i class="ni ni-tv-2 text-primary"></i>
                         <span class="nav-link-text">Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" 
-                    href="{{ route('mentor.mentees.index') }}">
+                    <a class="nav-link {{ Request::routeIs('mentor.mentees.index') ? 'active' : '' }}" 
+                       href="{{ route('mentor.mentees.index') }}">
                         <i class="ni ni-single-02 text-info"></i>
                         <span class="nav-link-text">daftar mentee</span>
                     </a>
@@ -41,7 +39,8 @@
                     </a>
                 </li> --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('mentor.schedule.index') ? 'active' : '' }}" href="{{ route('mentor.schedule.index') }}">
+                    <a class="nav-link {{ Request::routeIs('mentor.sessions.index') ? 'active' : '' }}" 
+                    href="{{ route('mentor.sessions.index') }}">
                         <i class="ni ni-calendar-grid-58 text-warning"></i> Kelola Jadwal
                     </a>
                 </li>
@@ -52,7 +51,8 @@
                     </a>
                 </li> --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('mentor.finance.index') ? 'active' : '' }}" href="{{ route('mentor.finance.index') }}">
+                    <a class="nav-link {{ Request::routeIs('mentor.finance.index') ? 'active' : '' }}" 
+                       href="{{ route('mentor.finance.index') }}">
                         <i class="ni ni-money-coins text-cyan"></i> Pendapatan & Pembayaran
                     </a>
                 </li>
@@ -65,7 +65,8 @@
                 </li> --}}
 
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('mentor.reviews.index') ? 'active' : '' }}" href="{{ route('mentor.reviews.index') }}">
+                    <a class="nav-link {{ Request::routeIs('mentor.reviews.index') ? 'active' : '' }}" 
+                       href="{{ route('mentor.reviews.index') }}">
                         <i class="ni ni-chat-round text-success"></i> Ulasan & Rating
                     </a>
                 </li>
@@ -92,7 +93,5 @@
                 </li> --}}
             </ul>
         </div>
-
-
     </div>
 </nav>
