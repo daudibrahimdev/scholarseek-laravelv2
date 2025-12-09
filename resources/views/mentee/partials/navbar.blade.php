@@ -12,6 +12,8 @@
                 <div class="navbar-nav ms-auto">
                     <a href="{{ route('home') }}" class="nav-item nav-link active">Home</a>
                     <a href="#" class="nav-item nav-link">Consultation</a>
+                    <a href="{{ route('mentee.packages.index') }}" class="nav-item nav-link {{  Request::routeIs('mentee.packages.index') ? 'active' : '' }}">Pricing & Paket
+                    </a>
                     <a href="#" class="nav-item nav-link">Scholarships</a>
                     <a href="#" class="nav-item nav-link">Student Guide</a>
                     

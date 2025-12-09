@@ -12,6 +12,7 @@
     use App\Http\Controllers\MentorController;
     use App\Http\Controllers\LearningSessionController;
     use App\Http\Controllers\BookingController;
+    use App\Http\Controllers\CheckoutController;   
 
     
 
@@ -46,6 +47,9 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
     
     // ... route mentee lainnya
     Route::post('/sessions/book', [BookingController::class, 'store'])->name('sessions.book.store');
+    // Route untuk halaman daftar paket
+    Route::get('/packages', [MenteeController::class, 'packages'])->name('packages.index'); 
+    Route::middleware(['auth'])->post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 });
 
 
