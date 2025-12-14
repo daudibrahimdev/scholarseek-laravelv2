@@ -3,6 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use App\Models\LearningSession;
+use App\Models\LearningSessionParticipant;
+use App\Models\UserPackage;
 
 class BookingController extends Controller
 {
@@ -19,7 +25,17 @@ class BookingController extends Controller
      */
     public function create()
     {
-        //
+        $menteeId = Auth::id();
+        
+        // Ambil semua paket aktif Mentee yang masih punya kuota
+        $activePackages = UserPackage::with('package', 'mentor.user')
+                                    ->where('user_id', $menteeId)
+                                    ->where('status', 'active')
+                                    ->where('remaining_quota', '>', 0)
+                                    ->get();
+
+        // Mengarahkan ke view package_select
+        return view('mentee.request.package_select', compact('activePackages')); 
     }
 
     /**
@@ -100,9 +116,33 @@ class BookingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    /**
+     * Menampilkan formulir booking sesi (Jadwal Mentor).
+     */
+    public function showBookingForm($userPackageId)
     {
-        //
+        $menteeId = Auth::id();
+
+        // 1. Ambil Paket Aktif Mentee
+        $userPackage = UserPackage::with(['package', 'mentor.user'])
+                                ->where('id', $userPackageId)
+                                ->where('user_id', $menteeId)
+                                ->where('status', 'active') // Harus paket aktif
+                                ->where('remaining_quota', '>', 0) // Harus ada kuota
+                                ->firstOrFail();
+
+        $mentor = $userPackage->mentor;
+
+        // 2. Ambil jadwal sesi MENTOR yang:
+        //    a. Statusnya 'scheduled' (sudah dibuat mentor, belum di-booking)
+        //    b. Waktunya belum terlewat
+        $availableSessions = LearningSession::where('mentor_id', $mentor->id)
+                                            ->where('status', 'scheduled') 
+                                            ->where('start_time', '>', now())
+                                            ->orderBy('start_time', 'asc')
+                                            ->get();
+
+        return view('mentee.booking.form', compact('userPackage', 'mentor', 'availableSessions'));
     }
 
     /**

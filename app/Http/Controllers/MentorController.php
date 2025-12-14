@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Mentor;
 use App\Models\Transaction;
 use App\Models\UserPackage;
+use App\Models\ScholarshipCategory;
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Support\Facades\Storage;
@@ -93,7 +94,13 @@ class MentorController extends Controller
     public function editProfile()
     {
         $mentor = Mentor::where('user_id', Auth::id())->with('user')->firstOrFail();
-        return view('mentor.profile.edit', compact('mentor'));
+
+        // untuk 
+        $expertiseOptions = ScholarshipCategory::where('is_active', true)
+                                               ->orderBy('name')
+                                               ->get();
+
+        return view('mentor.profile.edit', compact('mentor', 'expertiseOptions'));
     }
 
     /**
@@ -131,19 +138,26 @@ class MentorController extends Controller
     /**
  * Memperbarui data profil mentor.
  */
+    // app/Http/Controllers/MentorController.php
+
+// ...
+
     public function updateProfile(Request $request)
     {
         $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
         $user = Auth::user();
 
-        // 1. Validasi
+        // 1. Validasi (Ditambah validasi untuk full_address, is_available, dan expertise_areas)
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'bio' => 'nullable|string',
             'domicile_city' => 'required|string|max:100',
             'phone_number' => 'required|string|max:15',
-            'profile_picture' => 'nullable|image|max:2048', // Max 2MB
+            'full_address' => 'nullable|string', // Tambah validasi ini
+            'is_available' => 'nullable|boolean', // Tambah validasi ini
+            'expertise_areas' => 'nullable|array', // Tambah validasi ini
+            'profile_picture' => 'nullable|image|max:2048', 
         ]);
 
         // 2. Update User (Nama & Email)
@@ -153,11 +167,13 @@ class MentorController extends Controller
         ]);
 
         // 3. Update Mentor Profile
-        $data = $request->only(['bio', 'domicile_city', 'full_address', 'phone_number']);
+        $data = $request->only(['bio', 'domicile_city', 'full_address', 'phone_number', 'expertise_areas']);
+        
+        // ✅ HANDLE IS_AVAILABLE (Checkbox)
+        $data['is_available'] = $request->has('is_available');
         
         // Handle File Upload (Profile Picture)
         if ($request->hasFile('profile_picture')) {
-            // Hapus foto lama jika ada
             if ($mentor->profile_picture) {
                 Storage::delete('public/' . $mentor->profile_picture);
             }

@@ -14,6 +14,7 @@
     use App\Http\Controllers\BookingController;
     use App\Http\Controllers\CheckoutController;   
 
+    use App\Models\UserPackage;
     
 
     Route::get('/', function () {
@@ -50,6 +51,27 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
     // Route untuk halaman daftar paket
     Route::get('/packages', [MenteeController::class, 'packages'])->name('packages.index'); 
     Route::middleware(['auth'])->post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/consultations', [MenteeController::class, 'consultationsIndex'])->name('consultations.index');
+
+
+    // untuk pemilihan mentor
+    // 1. Halaman Pilih Mentor (GET)
+    Route::get('/mentor/assign/{user_package_id}', [MenteeController::class, 'showMentorSelection'])->name('mentor.assign.form');
+    
+    // 2. Proses Simpan Pilihan Mentor (POST)
+    Route::post('/mentor/assign', [MenteeController::class, 'assignMentor'])->name('mentor.assign.store');
+
+
+
+
+    Route::get('/booking/{user_package_id}', [BookingController::class, 'showBookingForm'])->name('sessions.booking.form');
+
+
+    // Route ini akan menampilkan FORM pengajuan permintaan
+Route::get('/requests/{userPackageId}/create', [SessionRequestController::class, 'create'])->name('session.request.create');
+
+// Route ini akan menerima data POST dari form permintaan
+Route::post('/requests', [SessionRequestController::class, 'store'])->name('session.request.store');
 });
 
 

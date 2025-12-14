@@ -21,11 +21,15 @@
                     <div class="media align-items-center">
                         <span class="avatar avatar-sm rounded-circle">
                             {{-- Foto Profil Dinamis --}}
-                            @if(Auth::user()->mentorProfile && Auth::user()->mentorProfile->profile_picture)
-                                <img alt="Image placeholder" src="{{ asset('storage/' . Auth::user()->mentorProfile->profile_picture) }}">
-                            @else
-                                <img alt="Image placeholder" src="{{ asset('assets/img/theme/team-4-800x800.jpg') }}">
-                            @endif
+                            {{-- Ambil URL foto jika relasi mentorProfile ada DAN profile_picture ada --}}
+                            @php
+                                $profilePicUrl = null;
+                                if (Auth::user()->mentorProfile && Auth::user()->mentorProfile->profile_picture) {
+                                    $profilePicUrl = asset('storage/' . Auth::user()->mentorProfile->profile_picture);
+                                }
+                            @endphp
+                            
+                            <img alt="{{ Auth::user()->name }}" src="{{ $profilePicUrl ?: asset('assets/img/theme/team-4-800x800.jpg') }}">
                         </span>
                         <div class="media-body ml-2 d-none d-lg-block">
                             <span class="mb-0 text-sm font-weight-bold">{{ Auth::user()->name }}</span>

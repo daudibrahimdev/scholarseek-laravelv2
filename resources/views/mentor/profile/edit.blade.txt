@@ -6,7 +6,48 @@
 
 @section('title', 'Profil Saya')
 
-{{-- Hapus @push('css') karena tidak diperlukan --}}
+{{-- CSS Tambahan untuk Efek Hover Foto Profil --}}
+@push('css')
+<style>
+    .profile-picture-container {
+        position: relative;
+        display: inline-block;
+        cursor: pointer; /* Ubah kursor jadi pointer */
+        /* Pastikan container tidak melebihi ukuran gambar */
+        width: 180px; 
+        height: 180px;
+    }
+    /* Override style default template agar gambar pas */
+    .card-profile-image img {
+        max-width: 180px;
+        height: 180px;
+        object-fit: cover; /* Agar gambar tidak gepeng */
+    }
+
+    .profile-picture-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Warna hitam transparan */
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0; /* Sembunyikan secara default */
+        transition: opacity 0.3s ease;
+        border-radius: 50%; /* Biar bunder ngikutin foto */
+        /* Koreksi posisi overlay agar pas dengan gambar yang ditarik ke atas */
+        transform: translate(-50%, 0);
+        left: 50%;
+    }
+    /* Tampilkan overlay pas di-hover */
+    .profile-picture-container:hover .profile-picture-overlay {
+        opacity: 1;
+    }
+</style>
+@endpush
 
 
 @section('content')
@@ -15,14 +56,19 @@
         <div class="col-xl-4 order-xl-2 mb-5 mb-xl-0">
             <div class="card card-profile shadow">
                 <div class="row justify-content-center">
+                    {{-- REVISI 3: Ubah col-lg-3 jadi col-auto agar dinamis di tengah --}}
                     <div class="col-auto order-lg-2">
-                        {{-- FOTO PROFIL DINAMIS (BISA DIKLIK) --}}
+                        {{-- FOTO PROFIL DINAMIS (SEKARANG BISA DIKLIK) --}}
                         <div class="card-profile-image profile-picture-container" id="profile-picture-trigger">
                             <img id="profile-picture-preview" src="{{ $mentor->profile_picture ? asset('storage/' . $mentor->profile_picture) : asset('assets/img/theme/team-4-800x800.jpg') }}" class="rounded-circle">
-                            {{-- Overlay yang muncul pas hover (Pastikan CSS untuk .profile-picture-container dan overlay ada di asset utama) --}}
+                            {{-- Overlay yang muncul pas hover --}}
+                            <div class="profile-picture-overlay">
+                                <span class="text-sm font-weight-bold"><i class="fas fa-camera mr-1"></i> Ganti</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+                {{-- REVISI 2: Bagian Tombol Connect/Message Dihapus --}}
                 <div class="card-header text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
                    {{-- Kosong (spacer) --}}
                 </div>
@@ -60,14 +106,6 @@
                         <div class="h5 mt-4">
                             <i class="ni business_briefcase-24 mr-2"></i>Mentor - ScholarSeek
                         </div>
-                        
-                        {{-- STATUS KETERSEDIAAN DI KARTU --}}
-                        <div class="mt-3">
-                            <span class="badge badge-{{ $mentor->is_available ? 'success' : 'danger' }}">
-                                {{ $mentor->is_available ? 'AVAILABLE' : 'TIDAK TERSEDIA' }}
-                            </span>
-                        </div>
-                        
                         <hr class="my-4" />
                         <p>{{ Str::limit($mentor->bio, 150) }}</p>
                     </div>
@@ -86,7 +124,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {{-- Alert dan Error Validation --}}
+                    {{-- Alert --}}
                     @if (session('success'))
                         <div class="alert alert-success">{{ session('success') }}</div>
                     @endif
@@ -134,70 +172,26 @@
                                 </div>
                             </div>
                             <div class="row">
-                                {{-- Field Kota Domisili --}}
                                 <div class="col-lg-6">
                                     <div class="form-group">
                                         <label class="form-control-label" for="input-city">Kota Domisili</label>
                                         <input type="text" name="domicile_city" id="input-city" class="form-control form-control-alternative" placeholder="City" value="{{ old('domicile_city', $mentor->domicile_city) }}">
                                     </div>
                                 </div>
-                                {{-- ✅ FIELD NOMOR TELEPON BARU --}}
-                                <div class="col-lg-6"> 
-                                    <div class="form-group">
-                                        <label class="form-control-label" for="input-phone">Nomor Telepon (WA Aktif)</label>
-                                        <input type="text" name="phone_number" id="input-phone" class="form-control form-control-alternative" placeholder="08xxxxxxxxxx" value="{{ old('phone_number', $mentor->phone_number) }}">
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         
                         <hr class="my-4" />
-                        <h6 class="heading-small text-muted mb-4">Status & Keahlian</h6>
+                        <h6 class="heading-small text-muted mb-4">Bio & Keahlian</h6>
                         <div class="pl-lg-4">
-                            
-                            {{-- ✅ STATUS KETERSEDIAAN (is_available) --}}
                             <div class="form-group">
-                                <label class="form-control-label d-block">Status Penerimaan Mentee</label>
-                                <div class="custom-control custom-checkbox mb-3">
-                                    <input class="custom-control-input" id="is_available" name="is_available" type="checkbox" value="1" {{ $mentor->is_available ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="is_available">
-                                        Saya Tersedia dan bersedia menerima Mentee baru saat ini
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            {{-- BIO --}}
-                            <div class="form-group">
-                                <label class="form-control-label">Bio & Deskripsi Diri</label>
+                                <label>Bio</label>
                                 <textarea rows="4" name="bio" class="form-control form-control-alternative" placeholder="Ceritakan tentang diri Anda...">{{ old('bio', $mentor->bio) }}</textarea>
                             </div>
                             
-                            {{-- EXPERTISE AREAS (CHECKBOXES - Asumsi $expertiseOptions ada di Controller) --}}
-                            <div class="form-group">
-                                <label class="form-control-label mb-2">Area Keahlian / Spesialisasi</label>
-                                <div class="row">
-                                    @forelse($expertiseOptions as $option)
-                                        <div class="col-md-6">
-                                            <div class="custom-control custom-checkbox mb-2">
-                                                <input class="custom-control-input" 
-                                                       id="exp_{{ $option->id }}" 
-                                                       name="expertise_areas[]" 
-                                                       value="{{ $option->id }}" 
-                                                       type="checkbox"
-                                                       {{ (is_array($mentor->expertise_areas) && in_array($option->id, $mentor->expertise_areas)) ? 'checked' : '' }}>
-                                                <label class="custom-control-label" for="exp_{{ $option->id }}">
-                                                    {{ $option->name }}
-                                                </label>
-                                            </div>
-                                        </div>
-                                    @empty
-                                        <p class="text-muted text-sm">Belum ada kategori beasiswa yang tersedia. (Check Admin Panel)</p>
-                                    @endforelse
-                                </div>
-                            </div>
-                            
-                            {{-- INPUT FILE TERSEMBUNYI --}}
+                            {{-- INPUT FILE TERSEMBUNYI (Dipicu oleh klik pada foto profil) --}}
                             <input type="file" name="profile_picture" id="profile-picture-input" style="display: none;" accept="image/*">
+
                         </div>
                         
                         <div class="text-center">
@@ -213,15 +207,18 @@
 @push('js')
 <script>
     $(document).ready(function() {
-        // Logic Photo Click and Preview (Asumsi CSS dan fungsi ini sudah ada di master/assets)
+        // 1. Ketika foto profil diklik, klik juga input file yang tersembunyi
         $('#profile-picture-trigger').on('click', function() {
             $('#profile-picture-input').click();
         });
+
+        // 2. Tampilkan preview gambar setelah file dipilih
         $('#profile-picture-input').on('change', function(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    // Ubah src gambar di kartu kanan jadi gambar baru
                     $('#profile-picture-preview').attr('src', e.target.result);
                 }
                 reader.readAsDataURL(file);
