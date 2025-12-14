@@ -26,6 +26,7 @@
                 </div>
             </div>
         </div>
+        {{-- Stat Permintaan Pending (Jika masih relevan, kalau tidak bisa dihapus) --}}
         <div class="col-xl-4 col-lg-6">
             <div class="card card-stats mb-4 mb-xl-0">
                 <div class="card-body">
@@ -64,7 +65,7 @@
 
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Harap periksa input Anda. Pastikan waktu sesi valid.
+            Harap periksa input Anda. Pastikan waktu sesi valid dan semua field wajib terisi.
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
     @endif
@@ -180,6 +181,7 @@
                     <div id="method-spoofing"></div> {{-- Tempat inject @method('PUT') --}}
                     
                     <div class="modal-body">
+                        
                         <div class="form-group">
                             <label for="title">Judul Sesi</label>
                             <input type="text" class="form-control" id="title" name="title" required placeholder="Contoh: Bedah Esai LPDP">
@@ -189,9 +191,27 @@
                             <label for="type">Tipe Sesi</label>
                             <select class="form-control" name="type" id="type">
                                 <option value="1on1">1-on-1 (Private)</option>
-                                <option value="group">Group (Webinar)</option>
+                                <option value="group">Group (Webinar/Umum)</option>
                             </select>
                         </div>
+                        
+                        {{-- >>> START: FIELD KRUSIAL UNTUK SKEMA PREMIUM (ASSIGN MENTEE) <<< --}}
+                        <div class="form-group" id="mentee-assign-field">
+                            <label for="user_package_id">Assign Mentee (Hanya Sesi Private)</label>
+                            <select class="form-control" name="user_package_id" id="user_package_id">
+                                <option value="">-- Pilih Mentee yang Akan Dijadwalkan --</option>
+                                @if (isset($assignedPackages))
+                                    @foreach ($assignedPackages as $package)
+                                        <option value="{{ $package->id }}">
+                                            {{ optional($package->user)->name ?? 'Mentee [ID:' . $package->user_id . ']' }} 
+                                            (Paket: {{ optional($package->package)->name }}) - Sisa: {{ $package->remaining_quota }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            {{-- Catatan: Required diatur via JS agar hanya berlaku untuk 1on1 --}}
+                        </div>
+                        {{-- >>> END: FIELD KRUSIAL <<< --}}
 
                         <div class="row">
                             <div class="col-md-6">
@@ -229,12 +249,36 @@
     
     @push('js')
     <script>
+        // FUNGSI UNTUK KONTROL TAMPILAN ASSIGN MENTEE (Hanya untuk 1on1)
+        function toggleMenteeAssign() {
+            var selectedType = $('#type').val();
+            var menteeField = $('#mentee-assign-field');
+            var menteeSelect = $('#user_package_id');
+
+            if (selectedType === '1on1') {
+                menteeField.show();
+                // Wajib diisi (untuk sesi 1on1)
+                menteeSelect.attr('required', 'required'); 
+            } else {
+                menteeField.hide();
+                // Tidak wajib diisi (untuk group session)
+                menteeSelect.removeAttr('required');
+                menteeSelect.val(''); // Clear selection saat group
+            }
+        }
+
+        // Panggil fungsi saat tipe sesi berubah
+        $('#type').on('change', function() {
+            toggleMenteeAssign();
+        });
+
         $('#modal-sesi').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); 
             var modal = $(this);
             
+            // --- MODE EDIT / MODE CREATE ---
             if (button.data('mode') === 'edit') {
-                // --- MODE EDIT ---
+                // Logika Edit
                 var id = button.data('id');
                 var updateRoute = '{{ route("mentor.sessions.update", ":id") }}';
                 
@@ -245,10 +289,13 @@
                 // Isi Form
                 modal.find('#title').val(button.data('title'));
                 modal.find('#type').val(button.data('type'));
+                // Karena mode edit, field assign mentee TIDAK diisi ulang, cukup disembunyikan jika bukan 1on1
+                // Jika Anda ingin mengedit Mentee, Anda perlu data-user-package-id
+                
                 modal.find('#start_time').val(button.data('start'));
                 modal.find('#end_time').val(button.data('end'));
                 modal.find('#url_meeting').val(button.data('url'));
-                modal.find('#description').val(button.data('desc'));
+                modal.find('#description').val(button.data('description'));
                 
             } else {
                 // --- MODE CREATE ---
@@ -259,6 +306,9 @@
                 // Reset Form
                 modal.find('form').trigger('reset');
             }
+            
+            // Panggil Toggle setelah mode diset, agar field Mentee disembunyikan/ditampilkan dengan benar
+            toggleMenteeAssign(); 
         });
 
         // Tampilkan modal lagi jika ada error validasi
