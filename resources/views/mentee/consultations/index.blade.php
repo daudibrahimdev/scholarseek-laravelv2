@@ -9,7 +9,7 @@
                 <h1 class="display-4 text-white animated zoomIn">Pusat Konsultasi</h1>
                 <a href="{{ route('mentee.index') }}" class="h5 text-white">Dashboard</a>
                 <i class="far fa-circle text-white px-2"></i>
-                <a href="{{ route('mentee.consultations.index') }}" class="h5 text-white">Konsultasi</a>
+                <a href="#" class="h5 text-white">Konsultasi</a>
             </div>
         </div>
     </div>
@@ -18,7 +18,7 @@
         <div class="container py-5">
             <div class="row g-5">
                 
-                {{-- SECTION 1: PAKET AKTIF & PENDING --}}
+                {{-- SECTION 1: PAKET AKTIF & PENDING (DIHANDLE CONTROLLER) --}}
                 <div class="col-lg-12">
                     <h2 class="mb-4 text-primary">Status Paket Bimbingan Anda</h2>
                     
@@ -34,7 +34,6 @@
                                     <div class="card-body">
                                         <h5 class="card-title text-success">{{ $pkg->package->name }} (AKTIF)</h5>
                                         
-                                        {{-- INFORMASI MENTOR --}}
                                         <div class="d-flex align-items-center mb-2">
                                             <img src="{{ $pkg->mentor->profile_picture ? asset('storage/' . $pkg->mentor->profile_picture) : asset('mentee_assets/img/team-default.jpg') }}" 
                                                  class="rounded-circle me-3" alt="Mentor Photo" style="width: 40px; height: 40px; object-fit: cover;">
@@ -46,13 +45,14 @@
                                         
                                         <p class="card-text mb-3">Sisa Kuota: <span class="fw-bold fs-4 text-primary">{{ $pkg->remaining_quota }}</span> Sesi</p>
                                         
-                                        {{-- Tombol Booking Sesi (KOREKSI: Hanya satu tombol Booking yang benar) --}}
+                                        {{-- Tombol Booking Sesi --}}
                                         @if ($pkg->remaining_quota > 0)
-                                            <a href="{{ route('mentee.sessions.booking.form', ['user_package_id' => $pkg->id]) }}" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-calendar-alt me-1"></i> Booking Sesi Baru
+                                            {{-- Link ini akan mengarah ke halaman booking sesi mentor ini (akan dibuat) --}}
+                                            <a href="#" class="btn btn-sm btn-primary disabled" aria-disabled="true">
+                                                <i class="fas fa-calendar-alt me-1"></i> Booking Sesi Baru (WIP)
                                             </a>
                                         @else
-                                            <button class="btn btn-sm btn-secondary disabled">Kuota Habis</button>
+                                             <button class="btn btn-sm btn-secondary disabled">Kuota Habis</button>
                                         @endif
                                     </div>
                                     <div class="card-footer bg-light border-0">
@@ -84,7 +84,6 @@
                                     <th>Topik</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
-                                    
                                 </tr>
                             </thead>
                             <tbody>
