@@ -21,12 +21,9 @@
                 <h1 class="mb-0">Pilih Paket Terbaik untuk Lolos Beasiswa Impian</h1>
             </div>
             
-            {{-- Alert Notifikasi --}}
+            {{-- Alert Error Pembelian --}}
             @if(session('error'))
                 <div class="alert alert-danger mb-4 text-center">{{ session('error') }}</div>
-            @endif
-            @if(session('success'))
-                <div class="alert alert-success mb-4 text-center">{{ session('success') }}</div>
             @endif
 
             <div class="row g-4 justify-content-center">
@@ -53,23 +50,25 @@
                                         <li class="mb-2"><i class="fa fa-clock text-primary me-2"></i> 
                                             Durasi: {{ $pkg->duration_days }} Hari
                                         </li>
-                                        
+                                        {{-- Fitur statis tambahan bisa dilogika di sini atau di DB --}}
                                         @if($pkg->type == 'private' || $pkg->type == 'hybrid')
                                             <li class="mb-2"><i class="fa fa-check text-primary me-2"></i> Private 1-on-1 Mentoring</li>
                                             <li class="mb-2"><i class="fa fa-check text-primary me-2"></i> Review Dokumen & Esai</li>
                                         @endif
-
                                         @if($pkg->type == 'group' || $pkg->type == 'hybrid')
                                             <li class="mb-2"><i class="fa fa-check text-primary me-2"></i> Akses Webinar Group</li>
                                         @endif
                                     </ul>
                                 </div>
 
-                                {{-- ALUR BARU: Menuju halaman ringkasan checkout --}}
-                                <a href="{{ route('mentee.checkout.index', ['package_id' => $pkg->id]) }}" 
-                                   class="btn btn-primary py-2 px-4 rounded-pill">
-                                    Pilih Paket Ini
-                                </a>
+                                {{-- FORM BELI --}}
+                                <form action="{{ route('mentee.checkout.store') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="package_id" value="{{ $pkg->id }}">
+                                    <button type="submit" class="btn btn-primary py-2 px-4 rounded-pill">
+                                        Pilih Paket Ini
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -77,4 +76,4 @@
             </div>
         </div>
     </div>
-@endsection
+    @endsection

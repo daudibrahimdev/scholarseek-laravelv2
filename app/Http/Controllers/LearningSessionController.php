@@ -41,7 +41,7 @@ class LearningSessionController extends Controller
         ->get();
 
         // 4. >>> START: LOGIKA BARU UNTUK DROPDOWN ASSIGN MENTEE <<<
-        $assignedPackages = UserPackage::with(['mentee', 'package']) // Pastikan menggunakan 'mentee' dan 'package'
+        $assignedPackages = UserPackage::with(['mentee', 'package']) 
             ->where('mentor_id', $mentor->id) // Jika kolom mentor_id di UserPackage menyimpan ID dari tabel MENTOR
             ->where('status', 'active')
             ->where('remaining_quota', '>', 0)

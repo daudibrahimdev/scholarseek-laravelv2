@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\LearningSessionParticipant;
 use Illuminate\Support\Facades\Auth;
 use App\Models\UserPackage;
 use App\Models\LearningSession;
 use App\Models\Package;
+use Carbon\Carbon;
 
 use App\Models\Mentor;
 
@@ -116,6 +118,22 @@ class MenteeController extends Controller
     
     // View ini akan menampilkan daftar paket aktif dan sesi yang akan datang
     return view('mentee.consultations.index', compact('activePackages', 'upcomingSessions'));
+    }
+
+    public function upcomingSessions()
+    {
+        $menteeId = Auth::id();
+
+        // Ambil sesi mendatang (start_time >= sekarang) di mana mentee ini terdaftar
+        $sessions = LearningSessionParticipant::with(['session.mentor.user'])
+            ->where('mentee_id', $menteeId)
+            ->whereHas('session', function($query) {
+                $query->where('start_time', '>=', Carbon::now())
+                    ->orderBy('start_time', 'asc');
+            })
+            ->get();
+
+        return view('mentee.sessions.upcoming', compact('sessions'));
     }
 }
 

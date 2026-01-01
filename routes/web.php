@@ -65,6 +65,14 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
 
 
     Route::get('/booking/{user_package_id}', [BookingController::class, 'showBookingForm'])->name('sessions.booking.form');
+    Route::get('/sessions/upcoming', [MenteeController::class, 'upcomingSessions'])->name('sessions.upcoming');
+    Route::get('/requests/create', [BookingController::class, 'create'])->name('bookings.create');
+    // checkout
+    
+    Route::get('/checkout/{package_id}', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::get('/checkout/success/{transaction_id}', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::post('/checkout/confirm/{transaction_id}', [CheckoutController::class, 'confirmPayment'])->name('checkout.confirm');
 
 
     // Route ini akan menampilkan FORM pengajuan permintaan
@@ -113,9 +121,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Route Khusus Aksi User Status
     Route::post('users/{user}/toggle-status', [UserController::class, 'toggleUserStatus'])->name('users.toggle-status');
 
+    // KHUSUS KONSULTASI
+    
+
 });
 
-
+  
 
 
 Route::middleware([

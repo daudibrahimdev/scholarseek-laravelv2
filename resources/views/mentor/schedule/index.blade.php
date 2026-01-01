@@ -202,9 +202,14 @@
                                 <option value="">-- Pilih Mentee yang Akan Dijadwalkan --</option>
                                 @if (isset($assignedPackages))
                                     @foreach ($assignedPackages as $package)
-                                        <option value="{{ $package->id }}">
+                                        {{-- <option value="{{ $package->id }}">
                                             {{ optional($package->user)->name ?? 'Mentee [ID:' . $package->user_id . ']' }} 
                                             (Paket: {{ optional($package->package)->name }}) - Sisa: {{ $package->remaining_quota }}
+                                        </option> --}}
+                                        <option value="{{ $package->id }}">
+                                            {{-- Mengambil nama dari relasi mentee --}}
+                                            {{ $package->mentee->name }} 
+                                            (Paket: {{ $package->package->name }}) - Sisa Sesi: {{ $package->remaining_quota }}
                                         </option>
                                     @endforeach
                                 @endif

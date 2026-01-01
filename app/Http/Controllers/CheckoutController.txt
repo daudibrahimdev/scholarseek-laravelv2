@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use App\Models\Package;
+use App\Models\Transaction;
+use App\Models\UserPackage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
+class CheckoutController extends Controller
+{
+    public function store(Request $request)
+    {
+        $request->validate([
+            'package_id' => 'required|exists:packages,id',
+        ]);
+
+        $user = Auth::user();
+        $package = Package::findOrFail($request->package_id);
+
+        // Cek apakah user sudah punya paket ini yang masih aktif/pending?
+        // (Optional: Bisa dibuka jika boleh beli multiple, tapi di migrasi kita set unique)
+        $existingPackage = UserPackage::where('user_id', $user->id)
+                                      ->where('package_id', $package->id)
+                                      ->whereIn('status', ['active', 'pending_assignment'])
+                                      ->first();
+
+        if ($existingPackage) {
+            return back()->with('error', 'Anda masih memiliki paket ' . $package->name . ' yang aktif atau belum di-assign.');
+        }
+
+        DB::transaction(function () use ($user, $package) {
+            // 1. Buat Transaksi (Simulasi Langsung Paid)
+            $transaction = Transaction::create([
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+                'amount' => $package->price,
+                'type' => 'purchase',
+                'status' => 'paid', // Simulasi langsung bayar
+                'payment_method' => 'manual_transfer',
+                'description' => 'Pembelian paket ' . $package->name,
+                'reference_id' => 'TRX-' . time(),
+            ]);
+
+            // 2. Buat User Package (Kuota Masuk)
+            UserPackage::create([
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+                'initial_quota' => $package->quota_sessions,
+                'remaining_quota' => $package->quota_sessions,
+                'purchased_at' => now(),
+                'expires_at' => $package->duration_days ? now()->addDays($package->duration_days) : null,
+                'status' => 'pending_assignment', // Status awal: Belum pilih mentor
+            ]);
+        });
+
+        // Redirect ke halaman pilih mentor atau dashboard
+        return redirect()->route('mentee.index')->with('success', 'Pembelian berhasil! Silakan pilih mentor untuk paket Anda.');
+    }
+
+    
+}
