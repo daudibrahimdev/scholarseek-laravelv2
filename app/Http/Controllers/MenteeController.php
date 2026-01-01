@@ -80,7 +80,8 @@ class MenteeController extends Controller
             'status' => 'active', // Aktifkan paketnya!
         ]);
 
-        return redirect()->route('mentee.index')->with('success', 'Mentor berhasil dipilih! Silakan booking sesi sekarang.');
+        return redirect()->route('mentee.consultations.index')
+        ->with('success', 'Permintaan bimbingan telah dikirim! Silakan tunggu konfirmasi dari mentor. Kami akan memberi tahu Anda jika mentor menyetujui atau menolak permintaan ini.');
     }
 
     public function consultationsIndex()
