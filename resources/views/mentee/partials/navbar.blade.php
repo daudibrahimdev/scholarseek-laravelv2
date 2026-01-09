@@ -29,6 +29,7 @@
                                 
                                 <a href="{{ route('mentee.sessions.upcoming') }}" class="dropdown-item {{ Request::routeIs('mentee.sessions.upcoming') ? 'active' : '' }}">Jadwal Sesi Mendatang</a>
                                 <a href="{{ route('mentee.bookings.create') }}" class="dropdown-item {{ Request::routeIs('mentee.bookings.create') ? 'active' : '' }}">Ajukan Sesi Baru</a>
+                                <a href="{{ route('mentee.sessions.history') }}" class="dropdown-item {{ Request::routeIs('mentee.sessions.history') ? 'active' : '' }}">Riwayat Kelas Selesai</a>
                             </div>
                         </div>
                         

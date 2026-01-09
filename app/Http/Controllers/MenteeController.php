@@ -172,5 +172,39 @@ class MenteeController extends Controller
 
         return view('mentee.sessions.upcoming', compact('sessions'));
     }
+
+    // HISTORY
+    /**
+     * Menampilkan riwayat sesi yang sudah selesai
+     */
+    public function history()
+{
+    // FIX: Langsung ambil ID User yang login karena tidak ada tabel 'mentees'
+    // mentee_id di database = user_id
+    $menteeId = \Illuminate\Support\Facades\Auth::id();
+    
+    // Query ke tabel learning_sessions lewat learning_session_participants
+    $history = \App\Models\LearningSession::whereHas('participants', function($q) use ($menteeId) {
+            $q->where('mentee_id', $menteeId);
+        })
+        ->where('end_time', '<', now()) // Ambil yang sudah lewat
+        // ->where('is_hidden_for_mentee', false) // Hapus baris ini kalau kolomnya belum lo bikin di DB
+        ->orderBy('end_time', 'desc')
+        ->get();
+
+    return view('mentee.sessions.history', compact('history'));
+}
+    /**
+     * Menyembunyikan riwayat sesi dari pandangan mentee
+     */
+    public function hide($id)
+    {
+        $session = LearningSession::findOrFail($id);
+        
+        // Update kolom is_hidden_for_mentee yang kita buat di migration tadi
+        $session->update(['is_hidden_for_mentee' => true]);
+
+        return back()->with('success', 'Riwayat sesi berhasil dihapus dari daftar.');
+    }
 }
 

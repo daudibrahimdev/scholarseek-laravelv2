@@ -74,6 +74,11 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::post('/checkout/confirm/{transaction_id}', [CheckoutController::class, 'confirmPayment'])->name('checkout.confirm');
 
+    // untuk history
+    // Contoh di web.php
+    Route::get('/sessions/history', [MenteeController::class, 'history'])->name('sessions.history');
+    Route::post('/sessions/history/{id}/hide', [MenteeController::class, 'hide'])->name('sessions.hide');
+
 
     // Route ini akan menampilkan FORM pengajuan permintaan
 Route::get('/requests/{userPackageId}/create', [SessionRequestController::class, 'create'])->name('session.request.create');
