@@ -141,6 +141,8 @@ Route::middleware([
     Route::post('/mentor/register', [MentorApplicationController::class, 'store'])->name('mentor.register.store');
 });
 
+
+
 Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->group(function () {
     
     // Route Dashboard Mentor (TARGET REDIRECTION)
@@ -149,10 +151,12 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
     
     // debugging route daftar mentee
     Route::get('/mentees', [MentorController::class, 'listAssignedMentees'])->name('mentees.index');
+    // untuk reject dan approve order mentee
+    Route::post('/mentees/{id}/approve', [MentorController::class, 'approveMentee'])->name('mentees.approve');
+    Route::post('/mentees/{id}/reject', [MentorController::class, 'rejectMentee'])->name('mentees.reject');
     Route::get('/finance', [MentorController::class, 'indexFinance'])->name('finance.index');
     Route::get('/reviews', [MentorController::class, 'indexReviews'])->name('reviews.index');
     
-    // ... route mentor lainnya (profil, jadwal)
     Route::resource('sessions', LearningSessionController::class)
          ->names('sessions');
 

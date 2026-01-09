@@ -14,46 +14,45 @@ return new class extends Migration
         Schema::create('user_packages', function (Blueprint $table) {
             $table->id();
             
-            // 1. Foreign Key ke Mentee (User)
-            // Memastikan paket ini dimiliki oleh Mentee yang terdaftar
-            $table->foreignId('user_id')
-                  ->constrained('users')
-                  ->onDelete('cascade');
+            // Relasi Utama
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('package_id')->constrained('packages')->onDelete('cascade');
+            $table->foreignId('mentor_id')->nullable()->constrained('mentors')->onDelete('set null'); 
             
-            // 2. Foreign Key ke Paket (Package)
-            // Menunjukkan paket mana yang dibeli (e.g., Ultimate Class)
-            $table->foreignId('package_id')
-                  ->constrained('packages')
-                  ->onDelete('cascade');
+            // Quota & Durasi
+            $table->integer('initial_quota');
+            $table->integer('remaining_quota');
+            $table->timestamp('purchased_at')->useCurrent();
+            $table->timestamp('expires_at')->nullable();
             
-            // 3. KUNCI SKEMA A: Mentor yang di-assign
-            // Jika paket sudah dibeli tapi belum pilih mentor, ini akan NULL.
-            // Jika Mentor dihapus, kolom ini di-SET NULL (tidak menghapus paket mentee)
-            $table->foreignId('mentor_id')
-                  ->nullable()
-                  ->constrained('mentors')
-                  ->onDelete('set null'); 
+            // Kolom Form Tambahan (Target Mentee)
+            $table->string('target_country')->nullable();
+            $table->string('target_university')->nullable();
+            $table->string('target_degree')->nullable(); // S1, S2, S3
+            $table->string('target_scholarship')->nullable();
+            $table->text('request_note')->nullable();
             
-            // 4. Quota Management
-            $table->integer('initial_quota'); // Total kuota awal yang didapat (misal: 30)
-            $table->integer('remaining_quota'); // Sisa kuota (ini yang akan dipotong saat booking)
-            
-            // 5. Status & Durasi
-            $table->timestamp('purchased_at');
-            $table->timestamp('expires_at')->nullable(); // Kapan paket ini kadaluarsa
-            
-            // Status:
-            // - pending_assignment: Sudah bayar, tapi belum pilih Mentor.
-            // - active: Mentor sudah dipilih, kuota bisa digunakan.
-            // - used_up: Kuota sudah habis (remaining_quota = 0).
-            // - expired: Sudah lewat expires_at.
-            $table->enum('status', ['active', 'pending_assignment', 'used_up', 'expired'])
-                  ->default('pending_assignment');
+            // Tracking & Penolakan
+            $table->timestamp('requested_at')->nullable();
+            $table->text('rejection_reason')->nullable();
+
+            // Status Baru
+            // pending_assignment: belum pilih mode (manual/auto)
+            // pending_approval: menunggu 1 mentor (Manual)
+            // open_request: nunggu di Job Board (Otomatis)
+            $table->enum('status', [
+                'active', 
+                'pending_assignment', 
+                'pending_approval', 
+                'open_request', 
+                'rejected', 
+                'used_up', 
+                'expired'
+            ])->default('pending_assignment');
             
             $table->timestamps();
 
-            // Index dan Unique Constraints
-            // Mentee hanya bisa memiliki satu paket yang sama (package_id) yang aktif/pending pada satu waktu.
+            // Mentee cuma bisa punya satu jenis paket yang sama yang belum kelar
             $table->unique(['user_id', 'package_id']); 
         });
     }

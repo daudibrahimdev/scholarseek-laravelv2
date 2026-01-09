@@ -22,6 +22,16 @@ class UserPackage extends Model
         'purchased_at',
         'expires_at',
         'status',
+
+        // tambahan
+
+        'target_country',
+        'target_university',
+        'target_degree',
+        'target_scholarship',
+        'request_note',
+        'requested_at',
+        'rejection_reason',
     ];
 
     protected $casts = [
@@ -29,6 +39,9 @@ class UserPackage extends Model
         'expires_at' => 'datetime',
         'initial_quota' => 'integer',
         'remaining_quota' => 'integer',
+
+        // tambahan
+        'requested_at' => 'datetime',
     ];
 
     // Relasi ke User (Mentee)
@@ -43,9 +56,15 @@ class UserPackage extends Model
         return $this->belongsTo(Package::class, 'package_id');
     }
     
-    // Relasi ke Mentor yang di-assign (PENTING!)
+    // Relasi ke Mentor
     public function mentor()
     {
         return $this->belongsTo(Mentor::class, 'mentor_id');
+    }
+
+    // Helper untuk cek apakah paket masih dalam masa tunggu approval mentor
+    public function isPending()
+    {
+        return in_array($this->status, ['pending_approval', 'open_request']);
     }
 }

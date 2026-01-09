@@ -21,81 +21,21 @@ class MentorController extends Controller
         return view('mentor.dashboard.index');
     }
     // debugging method daftar mentee dll
-    public function listAssignedMentees(Request $request)
+    public function listAssignedMentees()
     {
         // 1. Ambil ID Mentor yang sedang login
         $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
 
-        // 2. Hitung Statistik untuk Header
-        $stats = [
-            'total_active' => UserPackage::where('mentor_id', $mentor->id)
-                                ->where('status', 'active')
-                                ->count(),
-            'total_pending' => UserPackage::where('mentor_id', $mentor->id)
-                                ->where('status', 'pending_approval')
-                                ->count(),
-        ];
+        // 2. Ambil data dari tabel user_packages 
+        // Dimana mentor_id sesuai dengan mentor yang login
+        $assignedMentees = UserPackage::with(['mentee', 'package']) // Eager load User(mentee) dan Paket
+                                      ->where('mentor_id', $mentor->id)
+                                      ->orderBy('created_at', 'desc')
+                                      ->get();
 
-        // 3. Query Utama dengan Filter
-        $query = UserPackage::with(['mentee', 'package'])
-                    ->where('mentor_id', $mentor->id);
-
-        // Filter berdasarkan status jika ada request dari dropdown filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // 4. Ambil data dengan Pagination 10 per halaman
-        $assignedMentees = $query->orderBy('requested_at', 'desc') // Filter berdasarkan permintaan paling baru
-                                ->paginate(10);
-
-        // 5. Kirim data dan stats ke view
-        return view('mentor.mentees.index', compact('assignedMentees', 'stats'));
+        // 3. Kirim ke view
+        return view('mentor.mentees.index', compact('assignedMentees'));
     }
-
-    // untuk mentee konfirmasi pesanan
-    public function approveMentee($id)
-    {
-        $package = UserPackage::findOrFail($id);
-        $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
-        
-        // untuk make sure paket ini emang ditujukan untuk mentor yang lagi login
-        if ($package->mentor_id !== $mentor->id) {
-            return back()->with('error', 'Akses ditolak.');
-        }
-
-        $package->update([
-            'status' => 'active',
-            // Set tanggal expired otomatis berdasarkan durasi paket
-            'expires_at' => now()->addDays($package->package->duration_days)
-        ]);
-
-        return back()->with('success', 'Mentee berhasil diterima! Silakan mulai bimbingan.');
-    }
-
-    // untuk reject 
-    public function rejectMentee(Request $request, $id)
-    {
-        $package = UserPackage::findOrFail($id);
-        $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
-        
-        // sama, ini untuk make sure keamanan aja
-        if ($package->mentor_id !== $mentor->id) {
-            return back()->with('error', 'Akses ditolak.');
-        }
-
-        // utk ambil alasan mentor, dari preset/template
-        $reason = $request->reason_preset === 'other' ? $request->rejection_reason : $request->reason_preset;
-
-        $package->update([
-            'status' => 'rejected',
-            'mentor_id' => null, // Lepas mentor agar mentee bisa pilih orang lain
-            'rejection_reason' => $reason
-        ]);
-
-        return back()->with('success', 'Permintaan mentee telah ditolak.');
-    }
-
     public function indexSchedule()
     {
         return view('mentor.schedule.index');

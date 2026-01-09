@@ -47,8 +47,9 @@
                         </div>
                     </div>
                     <div class="card-footer bg-white border-0 p-4 pt-0">
-                        @if($item->session->link_meeting)
-                            <a href="{{ $item->session->link_meeting }}" target="_blank" class="btn btn-primary w-100 py-2">
+                        {{-- FIX: Mengganti link_meeting menjadi url_meeting sesuai database --}}
+                        @if($item->session->url_meeting)
+                            <a href="{{ $item->session->url_meeting }}" target="_blank" class="btn btn-primary w-100 py-2">
                                 <i class="bi bi-camera-video me-2"></i>Gabung Sesi Sekarang
                             </a>
                         @else
