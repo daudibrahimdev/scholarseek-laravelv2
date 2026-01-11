@@ -9,6 +9,8 @@ use App\Models\UserPackage;
 use App\Models\ScholarshipCategory;
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\LearningSession;
+
 use Illuminate\Support\Facades\Storage;
 
 class MentorController extends Controller
@@ -98,7 +100,93 @@ class MentorController extends Controller
 
     public function indexSchedule()
     {
-        return view('mentor.schedule.index');
+        $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
+        $now = now();
+
+        // Query Sesi Mendatang
+        $upcomingSessions = LearningSession::where('mentor_id', $mentor->id)
+                            ->where('end_time', '>', $now)
+                            ->orderBy('start_time', 'asc')
+                            ->get();
+
+        // Statistik
+        $scheduledCount = $upcomingSessions->count();
+        $finishedCount = LearningSession::where('mentor_id', $mentor->id)
+                            ->where('end_time', '<=', $now)
+                            ->count();
+
+        // + kirim 'sessions'
+        return view('mentor.schedule.index', [
+            'upcomingSessions' => $upcomingSessions,
+            'sessions' => $upcomingSessions, // Tambahin ini bro!
+            'scheduledCount' => $scheduledCount,
+            'finishedCount' => $finishedCount
+        ]);
+    }
+
+    private function autoUpdateStatus($mentorId) {
+    $now = now();
+    LearningSession::where('mentor_id', $mentorId)
+        ->where('status', 'scheduled')
+        ->where('end_time', '<=', $now)
+        ->update(['status' => 'completed']);
+}
+
+    public function cancelSession($id)
+    {
+        // Cari sesi berdasarkan ID
+        $session = \App\Models\LearningSession::findOrFail($id);
+        
+        // Logic: Jika sesi 1on1 (Private), balikin kuota ke mentee
+        if ($session->type == '1on1') {
+            // Ambil mentee pertama yang terdaftar di sesi ini
+            $participant = $session->participants()->first();
+            if ($participant) {
+                // Update sisa kuota di tabel user_packages
+                \App\Models\UserPackage::where('user_id', $participant->mentee_id)
+                    ->where('mentor_id', $session->mentor_id)
+                    ->where('status', 'active')
+                    ->increment('remaining_quota');
+            }
+        }
+
+        // Ubah status jadi cancelled sesuai enum di database
+        $session->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Sesi berhasil dibatalkan dan kuota mentee telah dikembalikan.');
+    }
+     
+    public function matchmakingIndex()
+    {
+        // Ambil paket yang statusnya 'open_request' (mentee sedang cari mentor) 
+        // dan mentor_id-nya masih kosong
+        $availableMentees = \App\Models\UserPackage::with(['mentee', 'package'])
+            ->where('status', 'open_request') // Sesuaikan dengan Enum di DB lo
+            ->whereNull('mentor_id')
+            ->orderBy('requested_at', 'desc')
+            ->get();
+
+        return view('mentor.matchmaking.index', compact('availableMentees'));
+    }
+
+    public function claimMentee($id)
+    {
+        $mentor = \App\Models\Mentor::where('user_id', Auth::id())->firstOrFail();
+        $package = \App\Models\UserPackage::findOrFail($id);
+
+        // Keamanan: Cek apakah sudah diambil orang lain duluan
+        if ($package->mentor_id !== null) {
+            return back()->with('error', 'Maaf, mentee ini sudah diambil oleh mentor lain.');
+        }
+
+        // Update paket: Masukkan ID mentor dan ubah status jadi active
+        $package->update([
+            'mentor_id' => $mentor->id,
+            'status' => 'active',
+            'expires_at' => now()->addDays($package->package->duration_days)
+        ]);
+
+        return redirect()->route('mentor.mentees.index')->with('success', 'Berhasil mengambil mentee! Silakan hubungi mentee untuk jadwal bimbingan.');
     }
     public function indexFinance()
     {

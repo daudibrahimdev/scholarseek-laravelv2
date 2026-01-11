@@ -4,40 +4,38 @@
     @include('mentor.partials.sidebar')
 @endsection
 
-@section('title', 'Atur Jadwal Sesi')
+@section('title', 'Kelola Jadwal Sesi')
 
 @section('header_stats')
-    {{-- Statistik Sederhana --}}
     <div class="row">
-        <div class="col-xl-4 col-lg-6">
-            <div class="card card-stats mb-4 mb-xl-0">
+        <div class="col-xl-6 col-lg-6">
+            <div class="card card-stats mb-4 mb-xl-0 shadow border-0">
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0">Sesi Terjadwal</h5>
-                            <span class="h2 font-weight-bold mb-0">{{ $sessions->count() }}</span>
+                            <h5 class="card-title text-uppercase text-muted mb-0">Sesi Aktif & Mendatang</h5>
+                            <span class="h2 font-weight-bold mb-0 text-primary">{{ $scheduledCount ?? 0 }}</span>
                         </div>
                         <div class="col-auto">
                             <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
-                                <i class="ni ni-calendar-grid-58"></i>
+                                <i class="fas fa-calendar-alt"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        {{-- Stat Permintaan Pending (Jika masih relevan, kalau tidak bisa dihapus) --}}
-        <div class="col-xl-4 col-lg-6">
-            <div class="card card-stats mb-4 mb-xl-0">
+        <div class="col-xl-6 col-lg-6">
+            <div class="card card-stats mb-4 mb-xl-0 shadow border-0">
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0">Permintaan Pending</h5>
-                            <span class="h2 font-weight-bold mb-0">{{ $pendingRequests->count() }}</span>
+                            <h5 class="card-title text-uppercase text-muted mb-0">Total Sesi Selesai</h5>
+                            <span class="h2 font-weight-bold mb-0 text-success">{{ $finishedCount ?? 0 }}</span>
                         </div>
                         <div class="col-auto">
-                            <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
-                                <i class="ni ni-bell-55"></i>
+                            <div class="icon icon-shape bg-success text-white rounded-circle shadow">
+                                <i class="fas fa-check-double"></i>
                             </div>
                         </div>
                     </div>
@@ -48,44 +46,44 @@
 @endsection
 
 @section('content')
-    {{-- ALERT SYSTEM --}}
+    {{-- ALERT SUKSES --}}
     @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        </div>
-    @endif
-    
-    @if (session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <span class="alert-icon"><i class="fas fa-check-circle"></i></span>
+            <span class="alert-text">{{ session('success') }}</span>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
     @endif
 
+    {{-- ALERT ERROR UMUM --}}
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <span class="alert-icon"><i class="fas fa-exclamation-triangle"></i></span>
+            <span class="alert-text">{{ session('error') }}</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+    @endif
+
+    {{-- ERROR VALIDASI (Agar terlihat jika modal gagal terbuka) --}}
     @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Harap periksa input Anda. Pastikan waktu sesi valid dan semua field wajib terisi.
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <span class="alert-text"><strong>Perhatian!</strong> Ada kesalahan pada input jadwal Anda. Silakan cek kembali form.</span>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
     @endif
 
     <div class="row">
-        {{-- BAGIAN 1: DAFTAR SESI --}}
-        <div class="col-xl-12 mb-5 mb-xl-0">
-            <div class="card shadow">
-                <div class="card-header border-0">
+        <div class="col-xl-12">
+            <div class="card shadow border-0">
+                <div class="card-header border-0 bg-white">
                     <div class="row align-items-center">
                         <div class="col">
-                            <h3 class="mb-0">Jadwal Sesi Anda</h3>
+                            <h3 class="mb-0 text-primary">Daftar Sesi Aktif</h3>
+                            <small class="text-muted">Sesi otomatis pindah ke Riwayat setelah waktu selesai terlampaui.</small>
                         </div>
                         <div class="col text-right">
-                            {{-- Tombol CREATE --}}
-                            <button type="button" class="btn btn-sm btn-success" 
-                                    data-toggle="modal" 
-                                    data-target="#modal-sesi" 
-                                    data-mode="create">
-                                <i class="fas fa-plus"></i> Buat Sesi Baru
+                            <button type="button" class="btn btn-sm btn-success shadow-sm" data-toggle="modal" data-target="#modal-sesi" data-mode="create">
+                                <i class="fas fa-plus mr-1"></i> Buat Sesi Baru
                             </button>
                         </div>
                     </div>
@@ -98,65 +96,64 @@
                                 <th scope="col">Waktu Mulai</th>
                                 <th scope="col">Tipe</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Aksi</th>
+                                <th scope="col" class="text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($sessions as $session)
+                            @forelse ($upcomingSessions ?? $sessions as $session)
                             <tr>
-                                <th scope="row">
-                                    {{ $session->title }}
-                                </th>
+                                <th scope="row" class="text-dark font-weight-600">{{ $session->title }}</th>
+                                <td><i class="far fa-clock text-info mr-1"></i> {{ $session->start_time->format('d M Y, H:i') }}</td>
                                 <td>
-                                    {{ $session->start_time->format('d M Y, H:i') }}
-                                </td>
-                                <td>
-                                    <span class="badge badge-{{ $session->type == '1on1' ? 'primary' : 'info' }}">
+                                    <span class="badge badge-pill {{ $session->type == '1on1' ? 'badge-primary' : 'badge-info' }}">
                                         {{ $session->type == '1on1' ? 'Private' : 'Group' }}
                                     </span>
                                 </td>
                                 <td>
+                                    @php
+                                        $statusColors = ['scheduled' => 'primary', 'ongoing' => 'warning', 'completed' => 'success', 'cancelled' => 'danger'];
+                                        $color = $statusColors[$session->status] ?? 'secondary';
+                                    @endphp
                                     <span class="badge badge-dot">
-                                        <i class="bg-{{ $session->status == 'scheduled' ? 'success' : 'warning' }}"></i> {{ ucfirst($session->status) }}
+                                        <i class="bg-{{ $color }}"></i> <span class="status text-{{ $color }}">{{ ucfirst($session->status) }}</span>
                                     </span>
                                 </td>
                                 <td class="text-right">
+                                    @if($session->status == 'scheduled' || $session->status == 'ongoing')
                                     <div class="dropdown">
-                                        <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                          <i class="fas fa-ellipsis-v"></i>
+                                        <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown">
+                                          <i class="fas fa-ellipsis-v text-primary"></i>
                                         </a>
-                                        <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                            {{-- Tombol Edit --}}
-                                            <a class="dropdown-item" href="#" 
-                                               data-toggle="modal" 
-                                               data-target="#modal-sesi"
-                                               data-mode="edit"
-                                               data-id="{{ $session->id }}"
+                                        <div class="dropdown-menu dropdown-menu-right shadow border-0">
+                                            @if($session->status == 'scheduled')
+                                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modal-sesi" data-mode="edit"
+                                               data-id="{{ $session->id }}" 
                                                data-title="{{ $session->title }}"
-                                               data-type="{{ $session->type }}"
+                                               data-type="{{ $session->type }}" 
                                                data-start="{{ $session->start_time->format('Y-m-d\TH:i') }}"
-                                               data-end="{{ $session->end_time->format('Y-m-d\TH:i') }}"
+                                               data-end="{{ $session->end_time->format('Y-m-d\TH:i') }}" 
                                                data-url="{{ $session->url_meeting }}"
                                                data-description="{{ $session->description }}">
-                                                Edit Sesi
+                                                <i class="fas fa-edit text-info mr-2"></i> Edit Sesi
                                             </a>
+                                            <div class="dropdown-divider"></div>
+                                            @endif
                                             
-                                            {{-- Tombol Delete --}}
-                                            <a class="dropdown-item text-danger" href="#" onclick="if(confirm('Yakin ingin menghapus sesi ini?')) { document.getElementById('delete-form-{{ $session->id }}').submit(); }">
-                                                Hapus Sesi
+                                            <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); if(confirm('Batalkan sesi ini? Kuota akan dikembalikan ke mentee.')) { document.getElementById('cancel-form-{{ $session->id }}').submit(); }">
+                                                <i class="fas fa-times-circle mr-2"></i> Batalkan Sesi
                                             </a>
-                                            <form id="delete-form-{{ $session->id }}" action="{{ route('mentor.sessions.destroy', $session->id) }}" method="POST" style="display: none;">
+                                            <form id="cancel-form-{{ $session->id }}" action="{{ route('mentor.sessions.cancel', $session->id) }}" method="POST" style="display: none;">
                                                 @csrf
-                                                @method('DELETE')
                                             </form>
                                         </div>
                                     </div>
+                                    @else
+                                        <span class="text-muted small italic">Terkunci</span>
+                                    @endif
                                 </td>
                             </tr>
                             @empty
-                            <tr>
-                                <td colspan="5" class="text-center">Belum ada sesi yang dijadwalkan.</td>
-                            </tr>
+                            <tr><td colspan="5" class="text-center py-5 text-muted">Belum ada sesi aktif.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -164,162 +161,164 @@
             </div>
         </div>
     </div>
-    
-    {{-- MODAL SESI (SINGLE MODAL: CREATE & EDIT) --}}
-    <div class="modal fade" id="modal-sesi" tabindex="-1" role="dialog" aria-labelledby="modal-sesi" aria-hidden="true">
+
+    {{-- MODAL FORM --}}
+    <div class="modal fade" id="modal-sesi" tabindex="-1" role="dialog" aria-labelledby="modal-sesi-label" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modal-title">Buat Sesi Belajar Baru</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
+            <div class="modal-content shadow border-0">
+                <div class="modal-header bg-secondary border-0">
+                    <h5 class="modal-title text-primary font-weight-bold" id="modal-title">Buat Sesi Belajar Baru</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                 </div>
                 
                 <form id="form-sesi" action="{{ route('mentor.sessions.store') }}" method="POST">
                     @csrf
-                    <div id="method-spoofing"></div> {{-- Tempat inject @method('PUT') --}}
+                    <div id="method-spoofing"></div>
                     
-                    <div class="modal-body">
-                        
+                    <div class="modal-body bg-secondary">
+                        {{-- ALERT ERROR DI DALAM MODAL (SUPAYA LO TAU KENAPA GA MASUK DB) --}}
+                        @if ($errors->any())
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <strong class="d-block mb-1">Gagal Menyimpan!</strong>
+                                <ul class="mb-0 pl-3 small">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            </div>
+                        @endif
+
                         <div class="form-group">
-                            <label for="title">Judul Sesi</label>
-                            <input type="text" class="form-control" id="title" name="title" required placeholder="Contoh: Bedah Esai LPDP">
+                            <label class="form-control-label">Judul Sesi <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-alternative" id="title" name="title" required value="{{ old('title') }}" placeholder="Contoh: Bedah Essay LPDP">
                         </div>
-                        
+
                         <div class="form-group">
-                            <label for="type">Tipe Sesi</label>
-                            <select class="form-control" name="type" id="type">
-                                <option value="1on1">1-on-1 (Private)</option>
-                                <option value="group">Group (Webinar/Umum)</option>
+                            <label class="form-control-label">Tipe Sesi <span class="text-danger">*</span></label>
+                            <select class="form-control form-control-alternative" name="type" id="type">
+                                <option value="1on1" {{ old('type') == '1on1' ? 'selected' : '' }}>1-on-1 (Private)</option>
+                                <option value="group" {{ old('type') == 'group' ? 'selected' : '' }}>Group (Umum)</option>
                             </select>
                         </div>
-                        
-                        {{-- >>> START: FIELD KRUSIAL UNTUK SKEMA PREMIUM (ASSIGN MENTEE) <<< --}}
+
                         <div class="form-group" id="mentee-assign-field">
-                            <label for="user_package_id">Assign Mentee (Hanya Sesi Private)</label>
-                            <select class="form-control" name="user_package_id" id="user_package_id">
-                                <option value="">-- Pilih Mentee yang Akan Dijadwalkan --</option>
-                                @if (isset($assignedPackages))
+                            <label class="form-control-label">Assign Mentee <span class="text-danger">*</span></label>
+                            <select class="form-control form-control-alternative" name="user_package_id" id="user_package_id">
+                                <option value="">-- Pilih Mentee --</option>
+                                @isset($assignedPackages)
                                     @foreach ($assignedPackages as $package)
-                                        {{-- <option value="{{ $package->id }}">
-                                            {{ optional($package->user)->name ?? 'Mentee [ID:' . $package->user_id . ']' }} 
-                                            (Paket: {{ optional($package->package)->name }}) - Sisa: {{ $package->remaining_quota }}
-                                        </option> --}}
-                                        <option value="{{ $package->id }}">
-                                            {{-- Mengambil nama dari relasi mentee --}}
-                                            {{ $package->mentee->name }} 
-                                            (Paket: {{ $package->package->name }}) - Sisa Sesi: {{ $package->remaining_quota }}
+                                        <option value="{{ $package->id }}" {{ old('user_package_id') == $package->id ? 'selected' : '' }}>
+                                            {{ $package->mentee->name }} (Sisa: {{ $package->remaining_quota }})
                                         </option>
                                     @endforeach
-                                @endif
+                                @endisset
                             </select>
-                            {{-- Catatan: Required diatur via JS agar hanya berlaku untuk 1on1 --}}
+                            <small class="text-muted font-italic">Hanya muncul untuk mentee yang sudah membeli paket.</small>
                         </div>
-                        {{-- >>> END: FIELD KRUSIAL <<< --}}
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="start_time">Waktu Mulai</label>
-                                    <input type="datetime-local" class="form-control" id="start_time" name="start_time" required>
+                                    <label class="form-control-label">Waktu Mulai <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" class="form-control form-control-alternative" id="start_time" name="start_time" required value="{{ old('start_time') }}">
+                                    <small class="text-muted">Harus waktu mendatang.</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="end_time">Waktu Selesai</label>
-                                    <input type="datetime-local" class="form-control" id="end_time" name="end_time" required>
+                                    <label class="form-control-label">Waktu Selesai <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" class="form-control form-control-alternative" id="end_time" name="end_time" required value="{{ old('end_time') }}">
+                                    <small class="text-muted">Harus setelah waktu mulai.</small>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="url_meeting">Link Meeting (Zoom/GMeet)</label>
-                            <input type="url" class="form-control" id="url_meeting" name="url_meeting" placeholder="https://...">
+                            <label class="form-control-label">Link Meeting</label>
+                            <input type="url" class="form-control form-control-alternative" id="url_meeting" name="url_meeting" value="{{ old('url_meeting') }}" placeholder="https://zoom.us/...">
                         </div>
-                        
+
                         <div class="form-group">
-                            <label for="description">Deskripsi Sesi</label>
-                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <label class="form-control-label">Deskripsi</label>
+                            <textarea class="form-control form-control-alternative" id="description" name="description" rows="3">{{ old('description') }}</textarea>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Simpan Jadwal</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <div class="modal-footer bg-secondary border-top-0">
+                        <button type="button" class="btn btn-link text-muted ml-auto" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary px-4">Simpan Jadwal</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    
-    @push('js')
-    <script>
-        // FUNGSI UNTUK KONTROL TAMPILAN ASSIGN MENTEE (Hanya untuk 1on1)
-        function toggleMenteeAssign() {
-            var selectedType = $('#type').val();
-            var menteeField = $('#mentee-assign-field');
-            var menteeSelect = $('#user_package_id');
+@endsection
 
-            if (selectedType === '1on1') {
-                menteeField.show();
-                // Wajib diisi (untuk sesi 1on1)
-                menteeSelect.attr('required', 'required'); 
+@push('js')
+<script>
+    $(document).ready(function() {
+        // Fungsi untuk toggle field Mentee
+        function toggleMenteeField() {
+            var type = $('#type').val();
+            if (type === '1on1') {
+                $('#mentee-assign-field').show();
+                $('#user_package_id').attr('required', 'required');
             } else {
-                menteeField.hide();
-                // Tidak wajib diisi (untuk group session)
-                menteeSelect.removeAttr('required');
-                menteeSelect.val(''); // Clear selection saat group
+                $('#mentee-assign-field').hide();
+                $('#user_package_id').removeAttr('required');
+                $('#user_package_id').val(''); // Reset selection
             }
         }
 
-        // Panggil fungsi saat tipe sesi berubah
+        // Jalankan saat load (penting jika ada error validasi dan halaman reload)
+        toggleMenteeField();
+
+        // Jalankan saat dropdown berubah
         $('#type').on('change', function() {
-            toggleMenteeAssign();
+            toggleMenteeField();
         });
 
+        // AUTO-OPEN MODAL JIKA ADA ERROR
+        // Ini kuncinya bro! Kalau validasi gagal, modal kebuka lagi otomatis
+        @if ($errors->any())
+            $('#modal-sesi').modal('show');
+        @endif
+
+        // Handler saat tombol modal diklik (Create/Edit)
         $('#modal-sesi').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); 
-            var modal = $(this);
             
-            // --- MODE EDIT / MODE CREATE ---
-            if (button.data('mode') === 'edit') {
-                // Logika Edit
-                var id = button.data('id');
-                var updateRoute = '{{ route("mentor.sessions.update", ":id") }}';
-                
-                modal.find('.modal-title').text('Edit Sesi: ' + button.data('title'));
-                modal.find('form').attr('action', updateRoute.replace(':id', id));
+            // Jika modal dibuka otomatis karena error (bukan diklik tombol), abaikan reset
+            if (!button.length) return; 
+
+            var modal = $(this);
+            var mode = button.data('mode');
+            
+            if (mode === 'edit') {
+                modal.find('.modal-title').text('Edit Sesi');
+                modal.find('form').attr('action', '{{ url("mentor/sessions") }}/' + button.data('id'));
                 modal.find('#method-spoofing').html('<input type="hidden" name="_method" value="PUT">');
                 
-                // Isi Form
                 modal.find('#title').val(button.data('title'));
-                modal.find('#type').val(button.data('type'));
-                // Karena mode edit, field assign mentee TIDAK diisi ulang, cukup disembunyikan jika bukan 1on1
-                // Jika Anda ingin mengedit Mentee, Anda perlu data-user-package-id
-                
+                modal.find('#type').val(button.data('type')).change(); // Trigger change biar mentee toggle jalan
                 modal.find('#start_time').val(button.data('start'));
                 modal.find('#end_time').val(button.data('end'));
                 modal.find('#url_meeting').val(button.data('url'));
                 modal.find('#description').val(button.data('description'));
                 
+                // Di mode edit, kita sembunyikan assign mentee agar kuota tidak rusak/ganda
+                $('#mentee-assign-field').hide(); 
+                
             } else {
-                // --- MODE CREATE ---
-                modal.find('.modal-title').text('Buat Sesi Belajar Baru');
+                modal.find('.modal-title').text('Buat Sesi Baru');
                 modal.find('form').attr('action', '{{ route("mentor.sessions.store") }}');
                 modal.find('#method-spoofing').html('');
                 
-                // Reset Form
-                modal.find('form').trigger('reset');
+                // Reset form manual biar bersih
+                modal.find('form')[0].reset();
+                $('#type').val('1on1').change(); // Default ke 1on1
             }
-            
-            // Panggil Toggle setelah mode diset, agar field Mentee disembunyikan/ditampilkan dengan benar
-            toggleMenteeAssign(); 
         });
-
-        // Tampilkan modal lagi jika ada error validasi
-        @if ($errors->any())
-            $('#modal-sesi').modal('show');
-        @endif
-    </script>
-    @endpush
-@endsection
+    });
+</script>
+@endpush

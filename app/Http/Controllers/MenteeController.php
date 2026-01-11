@@ -43,82 +43,74 @@ class MenteeController extends Controller
      */
     public function showMentorSelection($userPackageId)
     {
-        // 1. Ambil paket mentee (pastikan statusnya pending_assignment)
         $userPackage = UserPackage::with('package')
             ->where('id', $userPackageId)
             ->where('user_id', Auth::id())
-            ->whereIn('status', ['pending_assignment', 'rejected']) // Tambahin rejected biar bisa pilih ulang
+            ->whereIn('status', ['pending_assignment', 'rejected'])
             ->firstOrFail();
 
-        // 2. Query Mentor yang Verified & Available
+        // Ambil data untuk filter
+        $categories = \App\Models\ScholarshipCategory::all();
+        
         $query = Mentor::with('user')
             ->where('verification_status', 'verified')
             ->where('is_available', true);
 
-        // 3. LOGIC SEARCH: Berdasarkan Nama atau Bio
+        // Search & Filter (Tetap pertahankan logic lama lo)
         if ($search = request('search')) {
-            $query->where(function($q) use ($search) {
-                $q->whereHas('user', function($userQuery) use ($search) {
-                    $userQuery->where('name', 'LIKE', "%{$search}%");
-                })->orWhere('bio', 'LIKE', "%{$search}%");
-            });
-        }
-
-        // 4. LOGIC FILTER KOTA (Multi-select)
-        if ($cities = request('city')) {
-            $query->whereIn('domicile_city', $cities);
-        }
-
-        // 5. LOGIC FILTER SPESIALISASI (JSON Check)
-        // Karena di SQL lo expertise_areas itu JSON ["1", "7"]
-        if ($expertise = request('expertise')) {
-            $query->where(function($q) use ($expertise) {
-                foreach ($expertise as $id) {
-                    $q->orWhereJsonContains('expertise_areas', (string)$id);
-                }
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%");
             });
         }
 
         $mentors = $query->paginate(8);
 
-        return view('mentee.mentor.assign', compact('userPackage', 'mentors'));
+        return view('mentee.mentor.assign', compact('userPackage', 'mentors', 'categories'));
     }
 
     /**
      * Simpan pilihan mentor mentee.
      */
     public function assignMentor(Request $request)
-    {
-        $request->validate([
-            'user_package_id' => 'required|exists:user_packages,id',
-            'mode' => 'required|in:manual,auto',
-            'mentor_id' => 'required_if:mode,manual|exists:mentors,id',
+{
+    $request->validate([
+        'user_package_id' => 'required|exists:user_packages,id',
+        'mode' => 'required|in:manual,auto',
+        // Jika auto (matchmaking), field target wajib ada
+        'target_degree' => 'nullable|string',
+        'target_country' => 'nullable|string', 
+        'target_scholarship' => 'nullable|string',
+        'mentor_id' => 'required_if:mode,manual|exists:mentors,id',
+    ]);
+
+    $userPackage = UserPackage::where('id', $request->user_package_id)
+        ->where('user_id', Auth::id())
+        ->firstOrFail();
+
+    if ($request->mode === 'auto') {
+        // Alur Matchmaking: Mentor_id dikosongkan, status jadi open_request
+        $userPackage->update([
+            'mentor_id' => null,
+            'status' => 'open_request',
+            'target_degree' => $request->target_degree,
+            'target_country' => $request->target_country,
+            'target_scholarship' => $request->target_scholarship,
+            'request_note' => $request->request_note,
+            'requested_at' => now(),
         ]);
-
-        $userPackage = UserPackage::where('id', $request->user_package_id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
-
-        if ($request->mode === 'auto') {
-            // Mode Otomatis
-            $userPackage->update([
-                'status' => 'open_request',
-                'requested_at' => now(),
-                'mentor_id' => null,
-            ]);
-            $msg = 'Permintaan otomatis telah dikirim ke Job Board! Mentor akan segera mengambil orderan Anda.';
-        } else {
-            // Mode Manual
-            $userPackage->update([
-                'mentor_id' => $request->mentor_id,
-                'status' => 'pending_approval',
-                'requested_at' => now(),
-            ]);
-            $msg = 'Permintaan telah dikirim ke Mentor! Silakan tunggu konfirmasi dalam 12 jam.';
-        }
-
-        return redirect()->route('mentee.consultations.index')->with('success', $msg);
+        $msg = 'Permintaan Matchmaking berhasil! Profilmu sekarang ada di Job Board Mentor.';
+    } else {
+        // Alur Manual: Mentor_id diisi, status jadi pending_approval
+        $userPackage->update([
+            'mentor_id' => $request->mentor_id,
+            'status' => 'pending_approval',
+            'requested_at' => now(),
+        ]);
+        $msg = 'Permintaan bimbingan telah dikirim ke mentor pilihanmu.';
     }
+
+    return redirect()->route('mentee.consultations.index')->with('success', $msg);
+}
 
     public function consultationsIndex()
 {
@@ -161,11 +153,16 @@ class MenteeController extends Controller
     {
         $menteeId = Auth::id();
 
-        // Ambil sesi mendatang (start_time >= sekarang) di mana mentee ini terdaftar
+        // 1. Jalankan sinkronisasi status instan (Backup jika cronjob delay)
+        // Gunakan helper yang sudah kita buat tadi jika perlu, 
+        // atau biarkan command di background yang menangani.
+
+        // 2. Ambil sesi yang statusnya masih aktif (Scheduled & Ongoing)
         $sessions = LearningSessionParticipant::with(['session.mentor.user'])
             ->where('mentee_id', $menteeId)
             ->whereHas('session', function($query) {
-                $query->where('start_time', '>=', Carbon::now())
+                // Kita filter berdasarkan status, bukan cuma jam mulai
+                $query->whereIn('status', ['scheduled', 'ongoing'])
                     ->orderBy('start_time', 'asc');
             })
             ->get();

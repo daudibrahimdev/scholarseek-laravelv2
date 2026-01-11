@@ -35,7 +35,7 @@
         opacity: 0;
         padding: 15px;
         text-align: center;
-        cursor: pointer; /* Indikasi bisa diklik */
+        cursor: pointer;
     }
     .team-item:hover .team-overlay { opacity: 1; }
     
@@ -47,7 +47,7 @@
 <div class="container-fluid pb-5 bg-primary hero-header">
     <div class="container py-5 text-center">
         <h1 class="display-3 text-white mb-3 animated slideInDown">Pilih Mentor</h1>
-        <p class="text-white small">Klik pada profil mentor untuk mengajukan bimbingan target <strong>{{ $userPackage->target_university }}</strong></p>
+        <p class="text-white small">Pilih mentor favoritmu atau gunakan fitur Matchmaking untuk dicarikan mentor terbaik.</p>
     </div>
 </div>
 
@@ -56,14 +56,10 @@
         <div class="col-lg-10">
             <div class="card shadow animated zoomIn border-0" style="border: 2px dashed #0d6b68 !important; background-color: #f8f9fa;">
                 <div class="card-body text-center p-4">
-                    <h4 class="text-primary mb-2"><i class="fas fa-magic me-2"></i> Mode Cari Otomatis</h4>
-                    <p class="text-muted mb-3 small">Biarkan sistem mempublikasikan profilmu ke Job Board. Mentor yang sesuai akan langsung mengambil permintaanmu.</p>
-                    <form action="{{ route('mentee.mentor.assign.store') }}" method="POST" id="autoMatchForm">
-                        @csrf
-                        <input type="hidden" name="user_package_id" value="{{ $userPackage->id }}">
-                        <input type="hidden" name="mode" value="auto">
-                        <button type="button" onclick="confirmSelection('auto')" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">Aktifkan Matchmaking</button>
-                    </form>
+                    <h4 class="text-primary mb-2"><i class="fas fa-magic me-2"></i> Malas Pilih Sendiri?</h4>
+                    <p class="text-muted mb-3 small">Gunakan fitur <strong>Matchmaking</strong>. Mentor yang ahli di bidang studimu akan langsung mengambil permintaan bimbinganmu.</p>
+                    {{-- Tombol Pemicu Modal --}}
+                    <button type="button" data-bs-toggle="modal" data-bs-target="#matchmakingModal" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">Gunakan Fitur Matchmaking</button>
                 </div>
             </div>
         </div>
@@ -95,7 +91,7 @@
                             <small class="text-white mb-2">{{ $mentor->domicile_city ?? 'Global' }}</small>
                             <h5 class="text-white mb-2">{{ $mentor->user->name }}</h5>
                             <p class="text-white small px-2 mb-3" style="font-size: 12px;">{{ Str::limit($mentor->bio, 80) }}</p>
-                            <span class="btn btn-light btn-sm rounded-pill px-3 fw-bold">Pilih Mentor</span>
+                            <span class="btn btn-light btn-sm rounded-pill px-3 fw-bold">Pilih Mentor Ini</span>
                         </div>
                     </form>
 
@@ -122,10 +118,57 @@
     </div>
 </div>
 
+{{-- MODAL MATCHMAKING DENGAN INPUT OPSIONAL --}}
+<div class="modal fade" id="matchmakingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white"><i class="fas fa-bullseye me-2"></i> Detail Target Matchmaking</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('mentee.mentor.assign.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="user_package_id" value="{{ $userPackage->id }}">
+                <input type="hidden" name="mode" value="auto">
+                
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-4">Lengkapi data ini agar mentor tahu tujuanmu, atau kosongkan jika ingin berkonsultasi dulu dengan mentor.</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Jenjang Target (Opsional)</label>
+                            <select name="target_degree" class="form-select">
+                                <option value="">Belum Menentukan</option>
+                                <option value="S1">S1 (Bachelor)</option>
+                                <option value="S2">S2 (Master)</option>
+                                <option value="S3">S3 (Doctoral)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Negara Tujuan (Opsional)</label>
+                            <input type="text" name="target_country" class="form-control" placeholder="Contoh: Australia, Germany">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label small fw-bold">Beasiswa Target (Opsional)</label>
+                            <input type="text" name="target_scholarship" class="form-control" placeholder="Contoh: LPDP, AAS, DAAD">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label small fw-bold">Catatan Untuk Mentor (Optional)</label>
+                            <textarea name="request_note" class="form-control" rows="3" placeholder="Apa fokus bimbingan yang kamu inginkan?"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary px-4">Aktifkan & Cari Mentor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div id="filterSidebar" class="filter-sidebar shadow">
     <form action="" method="GET">
         <h5 class="text-primary mb-4 border-bottom pb-2">Filter Mentor</h5>
-        
         <div class="mb-4">
             <h6 class="fw-bold small">Domisili</h6>
             @php $cities = \App\Models\Mentor::whereNotNull('domicile_city')->distinct()->pluck('domicile_city'); @endphp
@@ -136,7 +179,6 @@
             </div>
             @endforeach
         </div>
-
         <div class="mb-4">
             <h6 class="fw-bold small">Keahlian Beasiswa</h6>
             @foreach(\App\Models\ScholarshipCategory::all() as $cat)
@@ -146,7 +188,6 @@
             </div>
             @endforeach
         </div>
-
         <button type="submit" class="btn btn-primary w-100 mb-2 rounded-pill">Terapkan</button>
         <button type="button" class="btn btn-outline-secondary w-100 rounded-pill" id="closeFilter">Tutup</button>
     </form>
@@ -158,26 +199,18 @@
     document.getElementById('filterToggle').addEventListener('click', () => filterSidebar.classList.add('active'));
     document.getElementById('closeFilter').addEventListener('click', () => filterSidebar.classList.remove('active'));
 
-    function confirmSelection(id, name = null) {
-        let title = name ? `Pilih ${name}?` : 'Aktifkan Cari Otomatis?';
-        let text = name ? `Permintaanmu akan dikirim ke ${name} untuk disetujui.` : 'Profil targetmu akan tampil di Job Board mentor.';
-
+    function confirmSelection(id, name) {
         Swal.fire({
-            title: title,
-            text: text,
+            title: `Pilih ${name}?`,
+            text: `Permintaanmu akan dikirim ke ${name} untuk disetujui.`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#0d6b68',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Lanjutkan!',
+            confirmButtonText: 'Ya, Pilih Mentor',
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                if (id === 'auto') {
-                    document.getElementById('autoMatchForm').submit();
-                } else {
-                    document.getElementById('form-mentor-' + id).submit();
-                }
+                document.getElementById('form-mentor-' + id).submit();
             }
         });
     }

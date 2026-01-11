@@ -166,20 +166,11 @@ Route::middleware(['auth', 'role:mentor'])->prefix('mentor')->name('mentor.')->g
          ->names('sessions');
 
     // Route Schedule Mentor
-    Route::get('/schedule', [MentorController::class, 'indexSchedule'])->name('schedule.index');
-    Route::post('/sessions/{id}/cancel', [MentorController::class, 'cancelSession'])->name('sessions.cancel');
-    Route::get('/sessions/history', [MentorController::class, 'historySchedule'])->name('sessions.history');
+    Route::get('/schedule', [LearningSessionController::class, 'index'])->name('schedule.index');
 
     // Route Edit dan Update Profil Mentor
     Route::get('/profile', [MentorController::class, 'editProfile'])->name('profile.edit');
     Route::put('/profile', [MentorController::class, 'updateProfile'])->name('profile.update');
-
-    // Halaman daftar mentee yang mencari mentor
-    Route::get('/matchmaking', [MentorController::class, 'matchmakingIndex'])->name('matchmaking.index');
-    
-    // Aksi untuk mengambil/klaim mentee tersebut
-    Route::post('/matchmaking/{id}/claim', [MentorController::class, 'claimMentee'])->name('matchmaking.claim');
-
 });
 
 

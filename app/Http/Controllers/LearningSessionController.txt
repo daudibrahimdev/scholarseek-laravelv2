@@ -21,38 +21,36 @@ class LearningSessionController extends Controller
      */
     public function index()
     {
-        // 1. Ambil profil mentor
+        // 1. Ambil profil mentor yang sedang login
         $mentor = Mentor::where('user_id', Auth::id())->firstOrFail();
-        
-        // --- TAMBAHAN: UPDATE STATUS OTOMATIS SAAT HALAMAN DIBUKA ---
-        $this->syncSessionStatuses($mentor->id); 
-        // -----------------------------------------------------------
-
         $now = now();
 
-        // 2. Query Sesi Aktif & Mendatang
+        // 2. Query Sesi Aktif & Mendatang (Untuk tabel utama)
+        // Kita ambil sesi yang statusnya 'scheduled' atau 'ongoing'
         $upcomingSessions = LearningSession::where('mentor_id', $mentor->id)
                             ->whereIn('status', ['scheduled', 'ongoing'])
                             ->orderBy('start_time', 'asc')
                             ->get();
 
-        // 3. Hitung Statistik
-        $scheduledCount = $upcomingSessions->count();
+        // 3. Hitung Statistik untuk Widget Atas
+        $scheduledCount = $upcomingSessions->count(); // Sesi Aktif
         
+        // Hitung sesi yang sudah 'completed' atau 'cancelled'
         $finishedCount = LearningSession::where('mentor_id', $mentor->id)
-                            ->whereIn('status', ['completed'])
+                            ->whereIn('status', ['completed', 'cancelled'])
                             ->count();
 
-        // 4. Data Mentee untuk Dropdown Modal
+        // 4. Ambil Data Mentee untuk Dropdown Modal (Penting agar modal tidak error)
         $assignedPackages = UserPackage::with(['mentee', 'package']) 
             ->where('mentor_id', $mentor->id)
             ->where('status', 'active')
             ->where('remaining_quota', '>', 0)
             ->get();
 
+        // 5. Kirim SEMUA variabel ke View
         return view('mentor.schedule.index', [
             'upcomingSessions' => $upcomingSessions,
-            'sessions' => $upcomingSessions,
+            'sessions' => $upcomingSessions, // Fallback untuk loop forelse
             'scheduledCount' => $scheduledCount,
             'finishedCount' => $finishedCount,
             'assignedPackages' => $assignedPackages
@@ -263,27 +261,5 @@ class LearningSessionController extends Controller
 
         return redirect()->route('mentor.sessions.index')
                          ->with('success', 'Sesi berhasil dihapus.');
-    }
-
-
-    /**
-     * FUNCTION HELPER
-     */
-    private function syncSessionStatuses($mentorId)
-    {
-        $now = now();
-        
-        // 1. Update ke Ongoing
-        LearningSession::where('mentor_id', $mentorId)
-            ->where('status', 'scheduled')
-            ->where('start_time', '<=', $now)
-            ->where('end_time', '>', $now)
-            ->update(['status' => 'ongoing']);
-
-        // 2. Update ke Completed
-        LearningSession::where('mentor_id', $mentorId)
-            ->whereIn('status', ['scheduled', 'ongoing'])
-            ->where('end_time', '<=', $now)
-            ->update(['status' => 'completed']);
     }
 }

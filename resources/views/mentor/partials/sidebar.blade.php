@@ -32,6 +32,12 @@
                         <span class="nav-link-text">daftar mentee</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('mentor.matchmaking.*') ? 'active' : '' }}" href="{{ route('mentor.matchmaking.index') }}">
+                        <i class="fas fa-search-location text-primary"></i>
+                        <span class="nav-link-text">Job Board (Matchmaking)</span>
+                    </a>
+                </li>
                 {{-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.documents.index') }}">
                         <i class="ni ni-archive-2 text-orange"></i>
