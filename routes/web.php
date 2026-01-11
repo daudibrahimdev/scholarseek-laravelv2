@@ -83,6 +83,9 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
     Route::get('/transactions', [MenteeController::class, 'transactionHistory'])->name('transactions.index');
     Route::get('/transactions/{id}/invoice', [MenteeController::class, 'showInvoice'])->name('transactions.invoice');
 
+    // cancel transaksi
+    Route::post('/checkout/cancel/{transaction_id}', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
+
 
     // Route ini akan menampilkan FORM pengajuan permintaan
 Route::get('/requests/{userPackageId}/create', [SessionRequestController::class, 'create'])->name('session.request.create');

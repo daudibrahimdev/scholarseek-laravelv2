@@ -111,4 +111,24 @@ class CheckoutController extends Controller
                 return back()->with('error', 'Gagal konfirmasi pembayaran: ' . $e->getMessage());
             }
         }
+
+    // untuk cancel
+    public function cancel($transaction_id)
+    {
+        $transaction = Transaction::where('id', $transaction_id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        try {
+            $transaction->update(['status' => 'cancelled']);
+
+            // UBAH BARIS INI: Tambahkan '.index' di belakangnya
+            return redirect()->route('mentee.packages.index') 
+                ->with('success', 'Pembayaran paket berhasil dibatalkan.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membatalkan pembayaran: ' . $e->getMessage());
+        }
+    }
 }
