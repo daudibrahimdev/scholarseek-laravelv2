@@ -32,6 +32,12 @@
                                 <a href="{{ route('mentee.sessions.history') }}" class="dropdown-item {{ Request::routeIs('mentee.sessions.history') ? 'active' : '' }}">Riwayat Kelas Selesai</a>
                             </div>
                         </div>
+                        <li class="nav-item">
+                            <a href="{{ route('mentee.transactions.index') }}" 
+                            class="nav-link {{ request()->routeIs('mentee.transactions.*') ? 'active' : '' }}">
+                                <i class="bi bi-receipt me-1"></i> Transaksi
+                            </a>
+                        </li>
                         
                         <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                             @csrf

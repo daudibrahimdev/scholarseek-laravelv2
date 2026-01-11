@@ -10,6 +10,7 @@ use App\Models\UserPackage;
 use App\Models\LearningSession;
 use App\Models\Package;
 use Carbon\Carbon;
+use App\Models\Transaction;
 
 use App\Models\Mentor;
 
@@ -202,6 +203,28 @@ class MenteeController extends Controller
         $session->update(['is_hidden_for_mentee' => true]);
 
         return back()->with('success', 'Riwayat sesi berhasil dihapus dari daftar.');
+    }
+
+    public function transactionHistory()
+    {
+        // Ambil semua transaksi milik mentee yang sedang login
+        // Kita panggil relasi 'package' (bukan userPackage) sesuai Model Transaction kamu
+        $transactions = Transaction::with(['package'])
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('mentee.transactions.index', compact('transactions'));
+    }
+
+    public function showInvoice($id)
+    {
+        // Cari transaksi berdasarkan ID dan pastikan milik user yang login
+        $transaction = Transaction::with(['package', 'user'])
+            ->where('user_id', Auth::id())
+            ->findOrFail($id);
+
+        return view('mentee.transactions.invoice', compact('transaction'));
     }
 }
 

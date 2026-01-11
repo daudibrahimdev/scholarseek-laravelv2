@@ -79,6 +79,10 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
     Route::get('/sessions/history', [MenteeController::class, 'history'])->name('sessions.history');
     Route::post('/sessions/history/{id}/hide', [MenteeController::class, 'hide'])->name('sessions.hide');
 
+    // history transaksi
+    Route::get('/transactions', [MenteeController::class, 'transactionHistory'])->name('transactions.index');
+    Route::get('/transactions/{id}/invoice', [MenteeController::class, 'showInvoice'])->name('transactions.invoice');
+
 
     // Route ini akan menampilkan FORM pengajuan permintaan
 Route::get('/requests/{userPackageId}/create', [SessionRequestController::class, 'create'])->name('session.request.create');
