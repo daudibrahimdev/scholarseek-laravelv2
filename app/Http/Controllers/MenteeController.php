@@ -211,6 +211,7 @@ class MenteeController extends Controller
         // Kita panggil relasi 'package' (bukan userPackage) sesuai Model Transaction kamu
         $transactions = Transaction::with(['package'])
             ->where('user_id', Auth::id())
+            ->whereNotIn('status', ['cancelled']) 
             ->orderBy('created_at', 'desc')
             ->get();
 
