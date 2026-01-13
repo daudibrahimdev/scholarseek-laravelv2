@@ -53,6 +53,8 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
     Route::middleware(['auth'])->post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/consultations', [MenteeController::class, 'consultationsIndex'])->name('consultations.index');
 
+    Route::get('/mentors', [MenteeController::class, 'indexMentors'])->name('mentors.index');
+
 
     // untuk pemilihan mentor
     // 1. Halaman Pilih Mentor (GET)

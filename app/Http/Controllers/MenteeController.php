@@ -68,6 +68,52 @@ class MenteeController extends Controller
 
         return view('mentee.mentor.assign', compact('userPackage', 'mentors', 'categories'));
     }
+    public function indexMentors(Request $request)
+{
+    // Query Dasar: Ambil mentor beserta data user (untuk dapet Nama Mentor)
+    $query = Mentor::with('user'); 
+
+    // 1. Filter Pencarian (Nama User & Bio Mentor)
+    if ($request->has('search') && $request->search != '') {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            // Cari di tabel 'users' melalui relasi 'user'
+            $q->whereHas('user', function($u) use ($search) {
+                $u->where('name', 'like', "%{$search}%");
+            })
+            // Cari di kolom 'bio' di tabel 'mentors'
+            ->orWhere('bio', 'like', "%{$search}%");
+        });
+    }
+
+    // 2. Filter Domisili (Kolom domicile_city)
+    if ($request->has('city')) {
+        $query->whereIn('domicile_city', $request->city);
+    }
+
+    // 3. Filter Keahlian (Kolom JSON expertise_areas)
+    if ($request->has('expertise')) {
+        $expertises = $request->expertise;
+        $query->where(function($q) use ($expertises) {
+            foreach ($expertises as $exp) {
+                // Sesuai dump SQL lo, expertise_areas itu JSON
+                $q->orWhereJsonContains('expertise_areas', $exp);
+            }
+        });
+    }
+
+    $mentors = $query->paginate(9);
+
+    // Ambil data pendukung buat Sidebar Filter
+    $cities = Mentor::select('domicile_city')
+        ->distinct()
+        ->whereNotNull('domicile_city')
+        ->pluck('domicile_city');
+        
+    $scholarshipCategories = \App\Models\ScholarshipCategory::all();
+
+    return view('mentee.mentors.index', compact('mentors', 'cities', 'scholarshipCategories'));
+}
 
     /**
      * Simpan pilihan mentor mentee.

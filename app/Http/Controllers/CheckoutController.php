@@ -33,29 +33,42 @@ class CheckoutController extends Controller
         $user = Auth::user();
         $package = Package::findOrFail($request->package_id);
 
-        // Cek apakah user sudah punya paket ini yang masih aktif/pending?
-        $existingPackage = UserPackage::where('user_id', $user->id)
+        // --- LOGIC REPURCHASE START ---
+        
+        // 1. Cek: Apakah mentee punya paket ini yang MASIH AKTIF (kuota > 0)?
+        $activeExisting = UserPackage::where('user_id', $user->id)
             ->where('package_id', $package->id)
-            ->whereIn('status', ['active', 'pending_assignment'])
+            ->whereIn('status', ['active', 'pending_assignment', 'pending_approval'])
+            ->where('remaining_quota', '>', 0)
             ->first();
 
-        if ($existingPackage) {
-            return back()->with('error', 'Anda masih memiliki paket ' . $package->name . ' yang aktif atau belum di-assign.');
+        if ($activeExisting) {
+            return back()->with('error', 'Kamu masih memiliki paket ' . $package->name . ' yang aktif dengan sisa ' . $activeExisting->remaining_quota . ' sesi.');
         }
 
-        // Simpan transaksi dengan status PENDING
+        // 2. Jika paket lama sudah 0 kuota atau expired, HAPUS recordnya 
+        // agar pas nanti insert di confirmPayment gak bentrok UNIQUE KEY (user_id, package_id)
+        UserPackage::where('user_id', $user->id)
+            ->where('package_id', $package->id)
+            ->where(function($q) {
+                $q->where('remaining_quota', '<=', 0)
+                ->orWhereIn('status', ['used_up', 'expired']);
+            })->delete();
+
+        // --- LOGIC REPURCHASE END ---
+
+        // Simpan transaksi PENDING seperti biasa
         $transaction = Transaction::create([
             'user_id' => $user->id,
             'package_id' => $package->id,
             'amount' => $package->price,
             'type' => 'purchase',
-            'status' => 'pending', // Belum aktif
+            'status' => 'pending',
             'payment_method' => $request->payment_method,
             'description' => 'Pembelian paket ' . $package->name,
             'reference_id' => 'TRX-' . time(),
         ]);
 
-        // Lempar ke halaman instruksi bayar
         return redirect()->route('mentee.checkout.success', $transaction->id);
     }
 
@@ -73,44 +86,42 @@ class CheckoutController extends Controller
      * Di sini baru UserPackage dibuat
      */
     public function confirmPayment($transaction_id)
-        {
-            $transaction = Transaction::findOrFail($transaction_id);
-            
-            // Pastikan transaksi masih pending biar gak diproses 2 kali
-            if ($transaction->status !== 'pending') {
-                return redirect()->route('mentee.consultations.index');
-            }
-
-            $package = Package::findOrFail($transaction->package_id);
-
-            try {
-                DB::beginTransaction();
-
-                // 1. Update Status Transaksi jadi PAID
-                $transaction->update(['status' => 'paid']);
-
-                // 2. Buat Record di UserPackage agar paket aktif
-                $userPackage = UserPackage::create([
-                    'user_id' => $transaction->user_id,
-                    'package_id' => $package->id,
-                    'initial_quota' => $package->quota_sessions,
-                    'remaining_quota' => $package->quota_sessions,
-                    'purchased_at' => now(),
-                    'expires_at' => $package->duration_days ? now()->addDays($package->duration_days) : null,
-                    'status' => 'pending_assignment', // Sesuai skema: Belum pilih mentor
-                ]);
-
-                DB::commit();
-
-                // Lempar ke halaman pilih mentor (image_4c4c06.png)
-                return redirect()->route('mentee.mentor.assign.form', ['user_package_id' => $userPackage->id])
-                                ->with('success', 'Pembayaran Terkonfirmasi! Sekarang silakan pilih mentor Anda.');
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return back()->with('error', 'Gagal konfirmasi pembayaran: ' . $e->getMessage());
-            }
+    {
+        $transaction = Transaction::findOrFail($transaction_id);
+        
+        if ($transaction->status !== 'pending') {
+            return redirect()->route('mentee.consultations.index');
         }
+
+        $package = Package::findOrFail($transaction->package_id);
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Update Transaksi jadi PAID
+            $transaction->update(['status' => 'paid']);
+
+            // 2. Buat Record Baru (UNIQUE KEY aman karena data lama sudah di-delete di function store)
+            $userPackage = UserPackage::create([
+                'user_id' => $transaction->user_id,
+                'package_id' => $package->id,
+                'initial_quota' => $package->quota_sessions,
+                'remaining_quota' => $package->quota_sessions,
+                'purchased_at' => now(),
+                'expires_at' => $package->duration_days ? now()->addDays($package->duration_days) : null,
+                'status' => 'pending_assignment', 
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('mentee.mentor.assign.form', ['user_package_id' => $userPackage->id])
+                            ->with('success', 'Pembayaran Terkonfirmasi! Silakan pilih mentor Anda.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal konfirmasi pembayaran: ' . $e->getMessage());
+        }
+    }
 
     // untuk cancel
     public function cancel($transaction_id)
