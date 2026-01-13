@@ -250,6 +250,30 @@ class MenteeController extends Controller
         return view('mentee.sessions.upcoming', compact('sessions'));
     }
 
+    public function storeReview(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'mentor_id' => 'required|exists:mentors,id',
+            'rating' => 'required|integer|min:1|max:5',
+            'user_package_id' => 'required|exists:user_packages,id'
+        ]);
+
+        // Simpan ke database
+        \App\Models\MentorReview::create([
+            'user_id' => Auth::id(),
+            'mentor_id' => $request->mentor_id,
+            'user_package_id' => $request->user_package_id,
+            'rating' => $request->rating,
+            'review' => $request->review
+        ]);
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Review kamu berhasil disimpan!'
+        ]);
+    }
+
     // HISTORY
     /**
      * Menampilkan riwayat sesi yang sudah selesai
@@ -306,5 +330,35 @@ class MenteeController extends Controller
 
         return view('mentee.transactions.invoice', compact('transaction'));
     }
+
+    /*
+        *
+        ALL ABOUT PROFILE
+        *
+     */
+
+    public function editProfile()
+{
+    $user = Auth::user(); //
+    return view('mentee.profile.edit', compact('user'));
+}
+
+public function updateProfile(Request $request)
+{
+    $user = Auth::user(); //
+
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'phone_number' => 'nullable|string|max:20',
+        'university' => 'nullable|string|max:255',
+        'major' => 'nullable|string|max:255',
+        'bio' => 'nullable|string|max:1000',
+    ]);
+
+    $user->update($request->all()); //
+
+    return back()->with('success', 'Profil kamu berhasil diperbarui!');
+} 
+
 }
 

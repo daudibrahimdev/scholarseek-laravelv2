@@ -3,6 +3,11 @@
 @section('title', 'Riwayat & Status Bimbingan')
 
 @section('content')
+{{-- Logic agar variabel navbar tidak error --}}
+@php
+    $needsMentorAction = $activePackages->where('status', 'pending_assignment')->count() > 0;
+@endphp
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
@@ -27,6 +32,17 @@
         padding: 5px 12px;
         border-radius: 20px;
         font-weight: 700;
+    }
+
+    /* Star Rating Style */
+    .star-rating i {
+        font-size: 2rem;
+        cursor: pointer;
+        color: #ddd;
+        transition: 0.2s;
+    }
+    .star-rating i.bi-star-fill.active {
+        color: #ffc107;
     }
 </style>
 
@@ -67,6 +83,8 @@
                                             <span class="badge bg-info text-white status-badge mb-2">Matchmaking Aktif</span>
                                         @elseif($pkg->status == 'rejected')
                                             <span class="badge bg-danger text-white status-badge mb-2">Permintaan Ditolak</span>
+                                        @elseif($pkg->status == 'pending_assignment')
+                                            <span class="badge bg-secondary text-white status-badge mb-2">Belum Pilih Mentor</span>
                                         @else
                                             <span class="badge bg-warning text-dark status-badge mb-2">Menunggu Persetujuan</span>
                                         @endif
@@ -84,10 +102,13 @@
                                                 onclick="confirmCancel('{{ $pkg->id }}')">
                                             <i class="bi bi-x-circle me-1"></i> Batalkan & Pilih Ulang
                                         </button>
-                                        {{-- Hidden Form for SweetAlert --}}
                                         <form id="cancel-form-{{ $pkg->id }}" action="{{ route('mentee.matchmaking.cancel', $pkg->id) }}" method="POST" style="display: none;">
                                             @csrf
                                         </form>
+                                    @elseif($pkg->status == 'pending_assignment')
+                                        <a href="{{ route('mentee.mentor.assign.form', ['user_package_id' => $pkg->id]) }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                                            Pilih Mentor Sekarang
+                                        </a>
                                     @endif
                                 </div>
                             </div>
@@ -138,7 +159,7 @@
                                     @if($pkg->status == 'active')
                                         <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Aktif</span>
                                     @elseif($pkg->status == 'used_up')
-                                        <span class="text-muted fw-bold">Selesai</span>
+                                        <span class="badge bg-secondary rounded-pill px-3 py-2">Sesi Berakhir</span>
                                     @else
                                         <span class="text-danger fw-bold">Expired</span>
                                     @endif
@@ -149,9 +170,26 @@
                                             Buka Workspace
                                         </a>
                                     @elseif($pkg->status == 'used_up')
-                                        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-bold">
-                                            <i class="bi bi-star-fill me-1"></i> Beri Rating
-                                        </button>
+                                        {{-- Logic Pengecekan Review Berdasarkan Database --}}
+                                        @php
+                                            $myReview = \App\Models\MentorReview::where('user_package_id', $pkg->id)->first();
+                                        @endphp
+                                        
+                                        @if(!$myReview)
+                                            <button class="btn btn-sm btn-warning rounded-pill px-3 fw-bold shadow-sm" 
+                                                    onclick="showRatingModal('{{ $pkg->id }}', '{{ $pkg->mentor_id }}', '{{ $pkg->mentor->user->name }}')">
+                                                <i class="bi bi-star-fill me-1"></i> Beri Rating
+                                            </button>
+                                        @else
+                                            <div class="d-flex flex-column align-items-end">
+                                                <div class="text-warning small mb-1">
+                                                    @for($i=1; $i<=5; $i++)
+                                                        <i class="bi {{ $i <= $myReview->rating ? 'bi-star-fill' : 'bi-star' }}"></i>
+                                                    @endfor
+                                                </div>
+                                                <span class="badge bg-light text-success border border-success rounded-pill px-2">Terulas</span>
+                                            </div>
+                                        @endif
                                     @endif
                                 </td>
                             </tr>
@@ -168,14 +206,13 @@
 </div>
 
 <script>
-    // SweetAlert2 Confirmation Logic
     function confirmCancel(id) {
         Swal.fire({
             title: 'Batalkan Permintaan?',
             text: "Kamu bisa memilih ulang mentor lain setelah membatalkan ini.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#0d6b68', // Warna primary web lo
+            confirmButtonColor: '#0d6b68',
             cancelButtonColor: '#d33',
             confirmButtonText: 'Ya, Batalkan!',
             cancelButtonText: 'Kembali',
@@ -187,7 +224,92 @@
         })
     }
 
-    // Success Toast Notification
+    function showRatingModal(packageId, mentorId, mentorName) {
+        Swal.fire({
+            title: 'Review Mentor',
+            html: `
+                <div class="text-center mb-3">
+                    <p class="small text-muted mb-3">Bagaimana pengalaman bimbinganmu dengan <b>${mentorName}</b>?</p>
+                    <div id="star-rating" class="star-rating d-flex justify-content-center gap-2 mb-3">
+                        <i class="bi bi-star" data-value="1"></i>
+                        <i class="bi bi-star" data-value="2"></i>
+                        <i class="bi bi-star" data-value="3"></i>
+                        <i class="bi bi-star" data-value="4"></i>
+                        <i class="bi bi-star" data-value="5"></i>
+                    </div>
+                    <textarea id="swal-review" class="form-control rounded-3" placeholder="Ceritakan kesan bimbinganmu..." rows="3"></textarea>
+                    <input type="hidden" id="swal-rating-value" value="0">
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Kirim Review',
+            confirmButtonColor: '#0d6b68',
+            cancelButtonText: 'Nanti Saja',
+            borderRadius: '15px',
+            didOpen: () => {
+                const stars = Swal.getHtmlContainer().querySelectorAll('.bi-star');
+                const ratingValue = document.getElementById('swal-rating-value');
+                
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        const val = parseInt(this.getAttribute('data-value'));
+                        ratingValue.value = val;
+                        
+                        stars.forEach((s, index) => {
+                            if (index < val) {
+                                s.classList.replace('bi-star', 'bi-star-fill');
+                                s.classList.add('active');
+                            } else {
+                                s.classList.replace('bi-star-fill', 'bi-star');
+                                s.classList.remove('active');
+                            }
+                        });
+                    });
+                });
+            },
+            preConfirm: () => {
+                const rating = document.getElementById('swal-rating-value').value;
+                const review = document.getElementById('swal-review').value;
+                if (rating == 0) {
+                    Swal.showValidationMessage('Tolong berikan bintang rating dulu ya!');
+                    return false;
+                }
+                return { rating: rating, review: review };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch("{{ route('mentee.reviews.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        user_package_id: packageId,
+                        mentor_id: mentorId,
+                        rating: result.value.rating,
+                        review: result.value.review
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Terima Kasih!',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Error', 'Terjadi kesalahan saat menyimpan review.', 'error');
+                });
+            }
+        })
+    }
+
     @if(session('success'))
         Swal.fire({
             icon: 'success',

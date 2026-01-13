@@ -44,6 +44,21 @@ class UserPackage extends Model
         'requested_at' => 'datetime',
     ];
 
+    // function untuk remaining_quota = 0 = used_up
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Setiap kali ada proses update data di tabel user_packages
+        static::updating(function ($userPackage) {
+            // Jika kuota sisa 0 DAN statusnya masih aktif
+            if ($userPackage->remaining_quota <= 0 && $userPackage->status === 'active') {
+                // Paksa ubah status jadi 'used_up' agar tombol rating muncul
+                $userPackage->status = 'used_up';
+            }
+        });
+    }
+
     // Relasi ke User (Mentee)
     public function mentee()
     {

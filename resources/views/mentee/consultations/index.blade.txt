@@ -3,6 +3,8 @@
 @section('title', 'Riwayat & Status Bimbingan')
 
 @section('content')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
     .text-dark-custom { color: #1a1a1a !important; }
     
@@ -44,14 +46,7 @@
                 <i class="bi bi-hourglass-split me-2 text-primary"></i>Status Permintaan Mentor
             </h4>
             
-            @if(session('success'))
-                <div class="alert alert-success border-0 shadow-sm mb-4">
-                    <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                </div>
-            @endif
-
             <div class="row g-4">
-                {{-- Tambahkan status 'open_request' dan 'rejected' agar mentee tau prosesnya --}}
                 @php
                     $pendingPkgs = $activePackages->whereIn('status', ['pending_approval', 'pending_assignment', 'open_request', 'rejected']);
                 @endphp
@@ -63,12 +58,11 @@
                                 <div class="d-flex align-items-center mb-3">
                                     <div class="flex-shrink-0">
                                         <div class="bg-white p-1 rounded-circle shadow-sm border border-2 border-primary">
-                                            <img src="{{ $pkg->mentor && $pkg->mentor->profile_picture ? asset('storage/' . $pkg->mentor->profile_picture) : asset('img/default-avatar.jpg') }}" 
+                                            <img src="{{ $pkg->mentor && $pkg->mentor->profile_picture ? asset('storage/' . $pkg->mentor->profile_picture) : asset('img/search2.png') }}" 
                                                  class="rounded-circle" style="width: 70px; height: 70px; object-fit: cover;">
                                         </div>
                                     </div>
                                     <div class="ms-4 flex-grow-1">
-                                        {{-- Badge Dinamis sesuai status DB --}}
                                         @if($pkg->status == 'open_request')
                                             <span class="badge bg-info text-white status-badge mb-2">Matchmaking Aktif</span>
                                         @elseif($pkg->status == 'rejected')
@@ -85,13 +79,14 @@
                                 <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                                     <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ $pkg->updated_at->format('d M Y') }}</small>
                                     
-                                    {{-- Tombol Aksi Batal/Reset Pilihan --}}
                                     @if(in_array($pkg->status, ['open_request', 'pending_approval', 'rejected']))
-                                        <form action="{{ route('mentee.matchmaking.cancel', $pkg->id) }}" method="POST" onsubmit="return confirm('Batalkan permintaan ini dan pilih mentor lain?')">
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" 
+                                                onclick="confirmCancel('{{ $pkg->id }}')">
+                                            <i class="bi bi-x-circle me-1"></i> Batalkan & Pilih Ulang
+                                        </button>
+                                        {{-- Hidden Form for SweetAlert --}}
+                                        <form id="cancel-form-{{ $pkg->id }}" action="{{ route('mentee.matchmaking.cancel', $pkg->id) }}" method="POST" style="display: none;">
                                             @csrf
-                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">
-                                                <i class="bi bi-x-circle me-1"></i> Batalkan & Pilih Ulang
-                                            </button>
                                         </form>
                                     @endif
                                 </div>
@@ -99,17 +94,15 @@
                         </div>
                     </div>
                 @empty
-                    @if(!session('success'))
                     <div class="col-12 text-center py-5 bg-light rounded-3 shadow-sm border border-dashed">
                         <i class="bi bi-inbox text-muted display-4"></i>
                         <p class="text-muted mt-2">Tidak ada permintaan mentor yang sedang diproses.</p>
                     </div>
-                    @endif
                 @endforelse
             </div>
         </div>
 
-        {{-- BAGIAN 2: RIWAYAT PAKET AKTIF & SELESAI --}}
+        {{-- BAGIAN 2: RIWAYAT PAKET BANTUAN --}}
         <div class="col-12">
             <h4 class="fw-bold mb-4">
                 <i class="bi bi-shield-check me-2 text-primary"></i>Riwayat Paket Bimbingan
@@ -126,7 +119,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- Tampilkan yang Active DAN yang sudah Used Up / Expired --}}
                         @forelse ($activePackages->whereIn('status', ['active', 'used_up', 'expired']) as $pkg)
                             <tr>
                                 <td class="ps-4">
@@ -146,7 +138,7 @@
                                     @if($pkg->status == 'active')
                                         <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Aktif</span>
                                     @elseif($pkg->status == 'used_up')
-                                        <span class="text-muted fw-bold">Selesai (Kuota Habis)</span>
+                                        <span class="text-muted fw-bold">Selesai</span>
                                     @else
                                         <span class="text-danger fw-bold">Expired</span>
                                     @endif
@@ -165,10 +157,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <i class="bi bi-cart-x text-muted display-5"></i>
-                                    <p class="text-muted mt-3">Belum ada riwayat paket bimbingan aktif atau selesai.</p>
-                                </td>
+                                <td colspan="5" class="text-center py-5 text-muted">Belum ada riwayat paket bimbingan aktif.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -177,4 +166,37 @@
         </div>
     </div>
 </div>
+
+<script>
+    // SweetAlert2 Confirmation Logic
+    function confirmCancel(id) {
+        Swal.fire({
+            title: 'Batalkan Permintaan?',
+            text: "Kamu bisa memilih ulang mentor lain setelah membatalkan ini.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6b68', // Warna primary web lo
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Batalkan!',
+            cancelButtonText: 'Kembali',
+            borderRadius: '15px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('cancel-form-' + id).submit();
+            }
+        })
+    }
+
+    // Success Toast Notification
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: "{{ session('success') }}",
+            timer: 3000,
+            showConfirmButton: false,
+            borderRadius: '15px'
+        });
+    @endif
+</script>
 @endsection

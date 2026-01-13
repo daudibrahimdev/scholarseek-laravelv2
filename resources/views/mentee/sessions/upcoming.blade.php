@@ -109,7 +109,7 @@
                 <p class="text-muted mx-auto" style="max-width: 500px;">
                     Mentor akan segera menjadwalkan sesi bimbingan setelah berdiskusi denganmu. Pantau terus halaman ini atau hubungi mentormu.
                 </p>
-                <a href="{{ url('/mentee/dashboard') }}" class="btn btn-outline-primary mt-3 px-4">Kembali ke Dashboard</a>
+                <a href="{{ url('/mentee/requests/create') }}" class="btn btn-outline-primary mt-3 px-4">Kembali ke Dashboard</a>
             </div>
         @endforelse
     </div>

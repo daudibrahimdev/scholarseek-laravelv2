@@ -19,22 +19,52 @@
                     <a href="{{ route('home') }}" class="nav-item nav-link {{ Request::is('/') ? 'active' : '' }}">Home</a>
                     <a href="{{ route('mentee.packages.index') }}" class="nav-item nav-link {{ Request::routeIs('mentee.packages.*') ? 'active' : '' }}">Pricing</a>
 
-                    {{-- 2. DROPDOWN INFORMASI (Gabungan Scholarships & Guide) --}}
+                    {{-- 2. DROPDOWN INFORMASI --}}
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pusat Informasi</a>
-                        <div class="dropdown-menu border-0 shadow-sm rounded-3">
+                        <div class="dropdown-menu border-0 shadow rounded-3">
                             <a href="#" class="dropdown-item px-3 py-2"><i class="bi bi-award me-2 text-primary"></i>Scholarships</a>
                             <a href="#" class="dropdown-item px-3 py-2"><i class="bi bi-book me-2 text-primary"></i>Student Guide</a>
                         </div>
                     </div>
 
                     @auth
-                        {{-- 3. DROPDOWN SESI --}}
+                        {{-- 3. DROPDOWN SESI DENGAN NOTIFIKASI URGENT --}}
                         <div class="nav-item dropdown">
-                            <a href="#" class="nav-link dropdown-toggle {{ Request::routeIs('mentee.sessions.*') || Request::routeIs('mentee.consultations.*') ? 'active' : '' }}" data-bs-toggle="dropdown">Sesi Saya</a>
-                            <div class="dropdown-menu border-0 shadow-sm rounded-3">
+                            <a href="#" class="nav-link dropdown-toggle position-relative {{ Request::routeIs('mentee.sessions.*') || Request::routeIs('mentee.consultations.*') ? 'active' : '' }}" 
+                               data-bs-toggle="dropdown"
+                               @if($needsMentorAction) 
+                                   data-bs-toggle="popover" 
+                                   data-bs-trigger="hover focus" 
+                                   data-bs-placement="bottom" 
+                                   data-bs-content="Kamu belum memilih mentor untuk paket yang aktif!" 
+                               @endif>
+                                Sesi Saya
+                                {{-- BULETAN MERAH NAVBAR - Diatur agar tidak menempel teks --}}
+                                @if($needsMentorAction)
+                                    <span class="position-absolute bg-danger border border-light rounded-circle" 
+                                          style="padding: 4px; top: 12px; right: -2px;">
+                                        <span class="visually-hidden">Perlu Tindakan</span>
+                                    </span>
+                                @endif
+                            </a>
+                            {{-- Min-width ditambah agar badge 'Pilih Mentor' tidak menabrak teks --}}
+                            <div class="dropdown-menu border-0 shadow rounded-3" style="min-width: 220px;">
                                 <span class="dropdown-header text-uppercase small fw-bold text-muted">Aktivitas</span>
-                                <a href="{{ route('mentee.consultations.index') }}" class="dropdown-item px-3 py-2">Status Paket</a>
+                                
+                                {{-- MENU STATUS PAKET --}}
+                                <a href="{{ route('mentee.consultations.index') }}" class="dropdown-item px-3 py-2">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span>Status Paket</span>
+                                        @if($needsMentorAction)
+                                            <span class="badge rounded-pill bg-danger animate__animated animate__pulse animate__infinite ms-3" 
+                                                  style="font-size: 0.6rem; padding: 0.4em 0.7em;">
+                                                Pilih Mentor!
+                                            </span>
+                                        @endif
+                                    </div>
+                                </a>
+
                                 <a href="{{ route('mentee.sessions.upcoming') }}" class="dropdown-item px-3 py-2">Jadwal Mendatang</a>
                                 <div class="dropdown-divider"></div>
                                 <span class="dropdown-header text-uppercase small fw-bold text-muted">Arsip</span>
@@ -43,16 +73,19 @@
                             </div>
                         </div>
 
-                        {{-- 4. DROPDOWN AKUN & TRANSAKSI (Biar bersih di kanan) --}}
+                        {{-- 4. DROPDOWN AKUN & TRANSAKSI --}}
                         <div class="nav-item dropdown ms-lg-3">
                             <a href="#" class="nav-link dropdown-toggle btn btn-outline-light text-dark border px-3 rounded-pill" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle me-1"></i> Akun
                             </a>
-                            <div class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                            <div class="dropdown-menu dropdown-menu-end border-0 shadow rounded-3">
                                 <div class="px-3 py-2 border-bottom mb-2">
                                     <div class="fw-bold">{{ Auth::user()->name }}</div>
                                     <div class="small text-muted" style="font-size: 11px;">{{ Auth::user()->email }}</div>
                                 </div>
+                                <a href="{{ route('mentee.profile.edit') }}" class="dropdown-item px-3 py-2">
+                                    <i class="bi bi-person-circle me-2"></i> Edit Profil
+                                </a>
                                 <a href="{{ route('mentee.transactions.index') }}" class="dropdown-item px-3 py-2 {{ request()->routeIs('mentee.transactions.*') ? 'active' : '' }}">
                                     <i class="bi bi-receipt me-2"></i> Riwayat Transaksi
                                 </a>
@@ -73,3 +106,13 @@
         </nav>
     </div>
 </div>
+
+{{-- SCRIPT INISIALISASI POPOVER --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        })
+    });
+</script>
