@@ -67,6 +67,7 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
 
 
     Route::get('/booking/{user_package_id}', [BookingController::class, 'showBookingForm'])->name('sessions.booking.form');
+    Route::post('/matchmaking/cancel/{id}', [MenteeController::class, 'cancelMatchmaking'])->name('matchmaking.cancel');
     Route::get('/sessions/upcoming', [MenteeController::class, 'upcomingSessions'])->name('sessions.upcoming');
     Route::get('/requests/create', [BookingController::class, 'create'])->name('bookings.create');
     // checkout

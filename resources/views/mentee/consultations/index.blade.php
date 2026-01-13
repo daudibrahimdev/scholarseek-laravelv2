@@ -3,6 +3,8 @@
 @section('title', 'Riwayat & Status Bimbingan')
 
 @section('content')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
     .text-dark-custom { color: #1a1a1a !important; }
     
@@ -28,7 +30,7 @@
     }
 </style>
 
-{{-- Hero Section - Centered Text --}}
+{{-- Hero Section --}}
 <div class="container-fluid hero-header-custom mb-5">
     <div class="container py-5 text-center">
         <h1 class="display-4 text-white animated zoomIn fw-bold mb-3">Riwayat Bimbingan</h1>
@@ -44,56 +46,63 @@
                 <i class="bi bi-hourglass-split me-2 text-primary"></i>Status Permintaan Mentor
             </h4>
             
-            @if(session('success'))
-                <div class="alert alert-success border-0 shadow-sm mb-4">
-                    <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                </div>
-            @endif
-
             <div class="row g-4">
-                {{-- REVISI LOGIC: Tambahkan 'open_request' supaya hasil matchmaking muncul --}}
                 @php
-                    $pendingPkgs = $activePackages->whereIn('status', ['pending_approval', 'pending_assignment', 'open_request']);
+                    $pendingPkgs = $activePackages->whereIn('status', ['pending_approval', 'pending_assignment', 'open_request', 'rejected']);
                 @endphp
 
                 @forelse ($pendingPkgs as $pkg)
                     <div class="col-md-6">
                         <div class="card card-custom shadow-sm bg-light">
-                            <div class="card-body d-flex align-items-center p-4">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-white p-1 rounded-circle shadow-sm border border-2 border-primary">
-                                        <img src="{{ $pkg->mentor && $pkg->mentor->profile_picture ? asset('storage/' . $pkg->mentor->profile_picture) : asset('img/default-avatar.jpg') }}" 
-                                             class="rounded-circle" style="width: 70px; height: 70px; object-fit: cover;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-white p-1 rounded-circle shadow-sm border border-2 border-primary">
+                                            <img src="{{ $pkg->mentor && $pkg->mentor->profile_picture ? asset('storage/' . $pkg->mentor->profile_picture) : asset('img/search2.png') }}" 
+                                                 class="rounded-circle" style="width: 70px; height: 70px; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                    <div class="ms-4 flex-grow-1">
+                                        @if($pkg->status == 'open_request')
+                                            <span class="badge bg-info text-white status-badge mb-2">Matchmaking Aktif</span>
+                                        @elseif($pkg->status == 'rejected')
+                                            <span class="badge bg-danger text-white status-badge mb-2">Permintaan Ditolak</span>
+                                        @else
+                                            <span class="badge bg-warning text-dark status-badge mb-2">Menunggu Persetujuan</span>
+                                        @endif
+                                        
+                                        <h5 class="fw-bold mb-0 text-dark-custom">{{ $pkg->package->name }}</h5>
+                                        <p class="mb-0 small">Mentor: <span class="fw-bold">{{ $pkg->mentor->user->name ?? 'Mencari Mentor Terbaik...' }}</span></p>
                                     </div>
                                 </div>
-                                <div class="flex-grow-1 ms-4">
-                                    {{-- Badge Dinamis sesuai status di database --}}
-                                    @if($pkg->status == 'open_request')
-                                        <span class="badge bg-info text-white status-badge mb-2">Menunggu Mentor Mengambil</span>
-                                    @else
-                                        <span class="badge bg-warning text-dark status-badge mb-2">Menunggu Persetujuan</span>
-                                    @endif
+
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                    <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ $pkg->updated_at->format('d M Y') }}</small>
                                     
-                                    <h5 class="fw-bold mb-1 text-dark-custom">{{ $pkg->package->name }}</h5>
-                                    <p class="mb-1 small">Mentor: <span class="fw-bold">{{ $pkg->mentor->user->name ?? 'Mencari Mentor Terbaik...' }}</span></p>
-                                    <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>Diajukan: {{ $pkg->created_at->format('d M Y') }}</small>
+                                    @if(in_array($pkg->status, ['open_request', 'pending_approval', 'rejected']))
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" 
+                                                onclick="confirmCancel('{{ $pkg->id }}')">
+                                            <i class="bi bi-x-circle me-1"></i> Batalkan & Pilih Ulang
+                                        </button>
+                                        {{-- Hidden Form for SweetAlert --}}
+                                        <form id="cancel-form-{{ $pkg->id }}" action="{{ route('mentee.matchmaking.cancel', $pkg->id) }}" method="POST" style="display: none;">
+                                            @csrf
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
                 @empty
-                    {{-- Hanya muncul kalau benar-benar tidak ada data DAN tidak sedang sukses matchmaking --}}
-                    @if(!session('success'))
                     <div class="col-12 text-center py-5 bg-light rounded-3 shadow-sm border border-dashed">
                         <i class="bi bi-inbox text-muted display-4"></i>
                         <p class="text-muted mt-2">Tidak ada permintaan mentor yang sedang diproses.</p>
                     </div>
-                    @endif
                 @endforelse
             </div>
         </div>
 
-        {{-- BAGIAN 2: RIWAYAT PAKET AKTIF --}}
+        {{-- BAGIAN 2: RIWAYAT PAKET BANTUAN --}}
         <div class="col-12">
             <h4 class="fw-bold mb-4">
                 <i class="bi bi-shield-check me-2 text-primary"></i>Riwayat Paket Bimbingan
@@ -103,34 +112,52 @@
                     <thead class="bg-light">
                         <tr>
                             <th class="ps-4">Nama Paket</th>
-                            <th>Mentor</th>
-                            <th>Sisa Kuota</th>
+                            <th>Mentor Pembimbing</th>
+                            <th class="text-center">Sisa Kuota</th>
                             <th>Status</th>
                             <th class="text-end pe-4">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($activePackages->where('status', 'active') as $pkg)
+                        @forelse ($activePackages->whereIn('status', ['active', 'used_up', 'expired']) as $pkg)
                             <tr>
                                 <td class="ps-4">
                                     <span class="fw-bold text-dark-custom">{{ $pkg->package->name }}</span><br>
                                     <small class="text-muted">ID: #PK-{{ $pkg->id }}</small>
                                 </td>
-                                <td>{{ $pkg->mentor->user->name ?? '-' }}</td>
-                                <td><span class="badge bg-primary px-3 py-2 rounded-pill">{{ $pkg->remaining_quota }} Sesi</span></td>
-                                <td><span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Aktif</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-person-badge me-2 text-primary"></i>
+                                        {{ $pkg->mentor->user->name ?? '-' }}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary px-3 py-2 rounded-pill">{{ $pkg->remaining_quota }} Sesi</span>
+                                </td>
+                                <td>
+                                    @if($pkg->status == 'active')
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Aktif</span>
+                                    @elseif($pkg->status == 'used_up')
+                                        <span class="text-muted fw-bold">Selesai</span>
+                                    @else
+                                        <span class="text-danger fw-bold">Expired</span>
+                                    @endif
+                                </td>
                                 <td class="text-end pe-4">
-                                    <a href="{{ route('mentee.bookings.create') }}" class="btn btn-sm btn-dark rounded-pill px-4 fw-bold shadow-sm">
-                                        Buka Workspace
-                                    </a>
+                                    @if($pkg->status == 'active')
+                                        <a href="{{ route('mentee.bookings.create') }}" class="btn btn-sm btn-dark rounded-pill px-4 fw-bold shadow-sm">
+                                            Buka Workspace
+                                        </a>
+                                    @elseif($pkg->status == 'used_up')
+                                        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-bold">
+                                            <i class="bi bi-star-fill me-1"></i> Beri Rating
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <i class="bi bi-cart-x text-muted display-5"></i>
-                                    <p class="text-muted mt-3">Belum ada riwayat paket aktif.</p>
-                                </td>
+                                <td colspan="5" class="text-center py-5 text-muted">Belum ada riwayat paket bimbingan aktif.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -139,4 +166,37 @@
         </div>
     </div>
 </div>
+
+<script>
+    // SweetAlert2 Confirmation Logic
+    function confirmCancel(id) {
+        Swal.fire({
+            title: 'Batalkan Permintaan?',
+            text: "Kamu bisa memilih ulang mentor lain setelah membatalkan ini.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6b68', // Warna primary web lo
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Batalkan!',
+            cancelButtonText: 'Kembali',
+            borderRadius: '15px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('cancel-form-' + id).submit();
+            }
+        })
+    }
+
+    // Success Toast Notification
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: "{{ session('success') }}",
+            timer: 3000,
+            showConfirmButton: false,
+            borderRadius: '15px'
+        });
+    @endif
+</script>
 @endsection

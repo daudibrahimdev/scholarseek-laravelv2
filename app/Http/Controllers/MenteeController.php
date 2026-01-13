@@ -163,27 +163,28 @@ class MenteeController extends Controller
 {
     $menteeId = Auth::id();
 
-    // 1. Cek Paket yang statusnya 'pending_assignment'
+    // 1. Cek Paket yang statusnya 'pending_assignment' (baru bayar tapi belum pilih mentor/matchmaking)
     $pendingAssignmentPackage = UserPackage::where('user_id', $menteeId)
                                         ->where('status', 'pending_assignment')
                                         ->first();
     
-    // LOGIC REDIRECT: Jika ada paket yang belum di-assign, paksa redirect.
+    // Jika ada paket yang terkatung-katung belum di-assign sama sekali, paksa mentee ke halaman pemilihan
     if ($pendingAssignmentPackage) {
         return redirect()->route('mentee.mentor.assign.form', [
             'user_package_id' => $pendingAssignmentPackage->id
         ]);
     }
     
-    // 2. Jika tidak ada pending, tampilkan daftar sesi aktif.
-    // (Logic ini akan kita kembangkan di turn berikutnya, tapi sekarang kita kirim data aktif)
+    // 2. AMBIL SEMUA PAKET (Bukan cuma active) agar muncul di tabel riwayat
+    // Kita ambil status: active, pending_approval, open_request, used_up, rejected
     $activePackages = UserPackage::with(['package', 'mentor.user']) 
                                 ->where('user_id', $menteeId)
-                                ->where('status', 'active')
+                                ->whereIn('status', ['active', 'pending_approval', 'open_request', 'used_up', 'rejected'])
+                                ->orderBy('updated_at', 'desc')
                                 ->get();
     
-    // Ambil sesi mendatang dari mentor yang sudah di-assign
-    $assignedMentorIds = $activePackages->pluck('mentor_id')->filter()->unique()->toArray();
+    // Ambil sesi mendatang hanya dari paket yang statusnya sudah 'active'
+    $assignedMentorIds = $activePackages->where('status', 'active')->pluck('mentor_id')->filter()->unique()->toArray();
     $upcomingSessions = [];
     if (!empty($assignedMentorIds)) {
         $upcomingSessions = LearningSession::with('mentor.user', 'participants')
@@ -192,8 +193,40 @@ class MenteeController extends Controller
                                             ->get();
     }
     
-    // View ini akan menampilkan daftar paket aktif dan sesi yang akan datang
     return view('mentee.consultations.index', compact('activePackages', 'upcomingSessions'));
+    }
+
+    public function cancelMatchmaking($id)
+    {
+        $package = UserPackage::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        // Sesuai dump SQL lo, status yang bisa dibatalkan adalah pending_approval dan open_request
+        if (!in_array($package->status, ['pending_approval', 'open_request', 'rejected'])) {
+            return back()->with('error', 'Status paket saat ini tidak dapat dibatalkan.');
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            // Reset paket ke status awal setelah bayar agar mentee bisa pilih mentor lagi
+            $package->update([
+                'status' => 'pending_assignment', 
+                'mentor_id' => null, 
+                'requested_at' => null,
+                'request_note' => null
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->route('mentee.consultations.index')
+                ->with('success', 'Permintaan mentor berhasil dibatalkan. Silakan pilih mentor baru.');
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return back()->with('error', 'Gagal membatalkan permintaan: ' . $e->getMessage());
+        }
     }
 
     public function upcomingSessions()
