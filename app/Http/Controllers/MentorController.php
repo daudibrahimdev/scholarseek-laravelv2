@@ -271,9 +271,66 @@ class MentorController extends Controller
         ));
     }
     public function indexReviews()
-    {
-        return view('mentor.reviews.index');
+{
+    $user = auth()->user();
+    $mentorId = $user->mentorProfile->id;
+
+    // 1. Ambil semua review milik mentor ini
+    // Kita load relasi user (mentee) dan package untuk detail
+    $reviews = \App\Models\MentorReview::with(['user', 'userPackage.package'])
+        ->where('mentor_id', $mentorId)
+        ->latest()
+        ->get();
+
+    // 2. Statistik Dasar
+    $totalReviews = $reviews->count();
+    $averageRating = $totalReviews > 0 ? $reviews->avg('rating') : 0;
+    
+    // 3. Rating Bulan Ini (Kinerja Terbaru)
+    $currentMonthReviews = $reviews->filter(function ($review) {
+        return $review->created_at->isCurrentMonth();
+    });
+    $currentMonthRating = $currentMonthReviews->count() > 0 ? $currentMonthReviews->avg('rating') : 0;
+
+    // 4. Bandingkan dengan Bulan Lalu (Logic Arrow Up/Down)
+    $lastMonthReviews = $reviews->filter(function ($review) {
+        return $review->created_at->isLastMonth();
+    });
+    $lastMonthRating = $lastMonthReviews->count() > 0 ? $lastMonthReviews->avg('rating') : 0;
+    $ratingDiff = $currentMonthRating - $lastMonthRating;
+
+    // 5. Distribusi Rating (Untuk Progress Bar)
+    // Kita hitung berapa persen user yang kasih bintang 5, 4, 3, 2, 1
+    $distribution = [];
+    for ($i = 5; $i >= 1; $i--) {
+        $count = $reviews->where('rating', $i)->count();
+        $percentage = $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0;
+        $distribution[$i] = [
+            'count' => $count,
+            'percentage' => round($percentage, 1)
+        ];
     }
+
+    // 6. Topik/Paket dengan Review Tertinggi (Spesialisasi)
+    // Kita cari paket mana yang rata-rata ratingnya paling tinggi buat mentor ini
+    $topCategory = \App\Models\MentorReview::where('mentor_reviews.mentor_id', $mentorId) // Tambahkan 'mentor_reviews.' di sini
+    ->join('user_packages', 'mentor_reviews.user_package_id', '=', 'user_packages.id')
+    ->join('packages', 'user_packages.package_id', '=', 'packages.id')
+    ->select('packages.name', \Illuminate\Support\Facades\DB::raw('AVG(mentor_reviews.rating) as avg_rating'))
+    ->groupBy('packages.id', 'packages.name')
+    ->orderByDesc('avg_rating')
+    ->first();
+
+    return view('mentor.reviews.index', compact(
+        'reviews',
+        'totalReviews',
+        'averageRating',
+        'currentMonthRating',
+        'ratingDiff',
+        'distribution',
+        'topCategory'
+    ));
+}
 
     /**
      * Menampilkan form edit profil mentor.

@@ -15,6 +15,8 @@
     use App\Http\Controllers\CheckoutController;   
 
     use App\Models\UserPackage;
+
+    use App\Http\Controllers\SessionRequestController;
     
 
     Route::get('/', function () {

@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>ScholarSeek | @yield('title', 'Mentor Dashboard')</title>
     
+    {{-- ASET ARGON --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="{{ asset('assets/img/brand/favicon.png') }}" rel="icon" type="image/png">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
@@ -16,15 +17,15 @@
     @stack('css')
 </head>
 
-{{-- PERBAIKAN: Tambahkan class layouting Argon di sini --}}
-<body class="g-sidenav-show g-sidenav-pinned">
+<body class="">
     
+    {{-- SLOT SIDEBAR MENTOR --}}
     @yield('sidebar') 
     
-    {{-- PERBAIKAN: Tambahkan id="panel" agar JS Argon mengenali container utama --}}
-    <div class="main-content" id="panel">
+    <div class="main-content">
         
-        @include('mentor.partials.navbar')
+        {{-- NAVBAR ADMIN/MENTOR --}}
+        @include('mentor.partials.navbar') {{-- Kita asumsikan Navbar sama persis --}}
         
         <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
             <div class="container-fluid">
@@ -36,13 +37,17 @@
         
         <div class="container-fluid mt--7">
             @yield('content')
+            
+            {{-- FOOTER --}}
             @include('admin.partials.footer')
         </div>
     </div>
     
+    {{-- SCRIPTS ARGON --}}
     <script src="{{ asset('assets/js/plugins/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/js/argon-dashboard.min.js?v=1.1.2') }}"></script>
     @stack('js')
 </body>
+
 </html>

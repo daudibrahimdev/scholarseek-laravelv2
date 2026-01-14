@@ -12,4 +12,17 @@ class MentorReview extends Model
     'user_package_id', 
     'rating', 
     'review'];
+    public function user()
+    {
+        // Relasi ke tabel users lewat kolom user_id
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Relasi ke UserPackage (Paket yang diambil)
+    public function userPackage()
+    {
+        // Relasi ke tabel user_packages lewat kolom user_package_id
+        return $this->belongsTo(UserPackage::class, 'user_package_id');
+    }
 }
+
