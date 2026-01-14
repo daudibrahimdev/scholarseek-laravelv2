@@ -22,10 +22,13 @@
 </style>
 
 {{-- Hero Section --}}
-<div class="container-fluid hero-header-custom mb-5">
-    <div class="container py-5 text-center">
-        <h1 class="display-4 text-white animated zoomIn fw-bold mb-3">Profil Saya</h1>
-        <p class="text-white opacity-75 mx-auto" style="max-width: 600px;">Lengkapi data diri kamu agar mentor bisa mengenal latar belakang akademikmu dengan lebih baik.</p>
+<div class="container-fluid pb-5 bg-primary hero-header">
+    <div class="container py-5">
+        <div class="row g-3 justify-content-center">
+            <div class="col-12 text-center">
+                <h1 class="display-1 mb-0 animated zoomIn text-black">Profil Saya</h1>
+            </div>
+        </div>
     </div>
 </div>
 
