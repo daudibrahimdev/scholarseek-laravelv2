@@ -15,18 +15,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
-        // Memanggil PackageSeeder untuk menambahkan data paket awal
+        // Panggil UserSeeder di urutan pertama agar ID user konsisten untuk data lainnya
         $this->call([
-            // UserSeeder::class, // Buat nanti jika perlu
-            // MentorSeeder::class, // Buat nanti jika perlu
-            PackageSeeder::class, //from database/seeders/PackageSeeder.php
+            UserSeeder::class,                // Akun Admin, Mentor, Mentee
+            PackageSeeder::class,             // Data Paket
+            ScholarshipCategorySeeder::class, // Kategori Beasiswa
+            ScholarshipSeeder::class,         // Data Beasiswa (20 data)
+            DocumentCategorySeeder::class,    // Kategori Dokumen
+            DocumentSeeder::class,            // Data Dokumen (20 data)
         ]);
     }
 }
