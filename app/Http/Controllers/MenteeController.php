@@ -338,27 +338,55 @@ class MenteeController extends Controller
      */
 
     public function editProfile()
-{
-    $user = Auth::user(); //
-    return view('mentee.profile.edit', compact('user'));
-}
+    {
+        $user = Auth::user(); //
+        return view('mentee.profile.edit', compact('user'));
+    }
 
-public function updateProfile(Request $request)
-{
-    $user = Auth::user(); //
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user(); //
 
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'phone_number' => 'nullable|string|max:20',
-        'university' => 'nullable|string|max:255',
-        'major' => 'nullable|string|max:255',
-        'bio' => 'nullable|string|max:1000',
-    ]);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone_number' => 'nullable|string|max:20',
+            'university' => 'nullable|string|max:255',
+            'major' => 'nullable|string|max:255',
+            'bio' => 'nullable|string|max:1000',
+        ]);
 
-    $user->update($request->all()); //
+        $user->update($request->all()); //
 
-    return back()->with('success', 'Profil kamu berhasil diperbarui!');
-} 
+        return back()->with('success', 'Profil kamu berhasil diperbarui!');
+    } 
+
+    // scholarships
+    public function scholarshipIndex(Request $request)
+    {
+        $query = \App\Models\Scholarship::with('categories');
+
+        // 1. Search Logic
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                ->orWhere('provider', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // 2. Filter by Category (Degree Level)
+        if ($request->filled('categories')) {
+            $query->whereHas('categories', function($q) use ($request) {
+                $q->whereIn('scholarship_category_id', $request->categories);
+            });
+        }
+
+        $scholarships = $query->latest()->paginate(9);
+        $categories = \App\Models\ScholarshipCategory::all();
+
+        return view('mentee.scholarships.index', compact('scholarships', 'categories'));
+    }
 
 }
 

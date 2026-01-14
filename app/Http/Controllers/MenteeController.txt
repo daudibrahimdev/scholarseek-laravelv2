@@ -43,19 +43,43 @@ class MenteeController extends Controller
      */
     public function showMentorSelection($userPackageId)
     {
-        // 1. Ambil paket mentee yang mau di-assign
+        // 1. Ambil paket mentee (pastikan statusnya pending_assignment)
         $userPackage = UserPackage::with('package')
             ->where('id', $userPackageId)
             ->where('user_id', Auth::id())
-            ->where('status', 'pending_assignment')
+            ->whereIn('status', ['pending_assignment', 'rejected']) // Tambahin rejected biar bisa pilih ulang
             ->firstOrFail();
 
-        // 2. Ambil daftar Mentor yang available & approved
-        // Kita ambil user-nya sekalian biar bisa nampilin nama & foto
-        $mentors = Mentor::with('user')
-            ->where('verification_status', 'verified') // atau 'verified' sesuaikan DB lu
-            ->where('is_available', true)
-            ->get();
+        // 2. Query Mentor yang Verified & Available
+        $query = Mentor::with('user')
+            ->where('verification_status', 'verified')
+            ->where('is_available', true);
+
+        // 3. LOGIC SEARCH: Berdasarkan Nama atau Bio
+        if ($search = request('search')) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function($userQuery) use ($search) {
+                    $userQuery->where('name', 'LIKE', "%{$search}%");
+                })->orWhere('bio', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // 4. LOGIC FILTER KOTA (Multi-select)
+        if ($cities = request('city')) {
+            $query->whereIn('domicile_city', $cities);
+        }
+
+        // 5. LOGIC FILTER SPESIALISASI (JSON Check)
+        // Karena di SQL lo expertise_areas itu JSON ["1", "7"]
+        if ($expertise = request('expertise')) {
+            $query->where(function($q) use ($expertise) {
+                foreach ($expertise as $id) {
+                    $q->orWhereJsonContains('expertise_areas', (string)$id);
+                }
+            });
+        }
+
+        $mentors = $query->paginate(8);
 
         return view('mentee.mentor.assign', compact('userPackage', 'mentors'));
     }
@@ -67,21 +91,33 @@ class MenteeController extends Controller
     {
         $request->validate([
             'user_package_id' => 'required|exists:user_packages,id',
-            'mentor_id' => 'required|exists:mentors,id',
+            'mode' => 'required|in:manual,auto',
+            'mentor_id' => 'required_if:mode,manual|exists:mentors,id',
         ]);
 
-        // Update UserPackage
         $userPackage = UserPackage::where('id', $request->user_package_id)
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        $userPackage->update([
-            'mentor_id' => $request->mentor_id,
-            'status' => 'active', // Aktifkan paketnya!
-        ]);
+        if ($request->mode === 'auto') {
+            // Mode Otomatis
+            $userPackage->update([
+                'status' => 'open_request',
+                'requested_at' => now(),
+                'mentor_id' => null,
+            ]);
+            $msg = 'Permintaan otomatis telah dikirim ke Job Board! Mentor akan segera mengambil orderan Anda.';
+        } else {
+            // Mode Manual
+            $userPackage->update([
+                'mentor_id' => $request->mentor_id,
+                'status' => 'pending_approval',
+                'requested_at' => now(),
+            ]);
+            $msg = 'Permintaan telah dikirim ke Mentor! Silakan tunggu konfirmasi dalam 12 jam.';
+        }
 
-        return redirect()->route('mentee.consultations.index')
-        ->with('success', 'Permintaan bimbingan telah dikirim! Silakan tunggu konfirmasi dari mentor. Kami akan memberi tahu Anda jika mentor menyetujui atau menolak permintaan ini.');
+        return redirect()->route('mentee.consultations.index')->with('success', $msg);
     }
 
     public function consultationsIndex()
@@ -125,16 +161,55 @@ class MenteeController extends Controller
     {
         $menteeId = Auth::id();
 
-        // Ambil sesi mendatang (start_time >= sekarang) di mana mentee ini terdaftar
+        // 1. Jalankan sinkronisasi status instan (Backup jika cronjob delay)
+        // Gunakan helper yang sudah kita buat tadi jika perlu, 
+        // atau biarkan command di background yang menangani.
+
+        // 2. Ambil sesi yang statusnya masih aktif (Scheduled & Ongoing)
         $sessions = LearningSessionParticipant::with(['session.mentor.user'])
             ->where('mentee_id', $menteeId)
             ->whereHas('session', function($query) {
-                $query->where('start_time', '>=', Carbon::now())
+                // Kita filter berdasarkan status, bukan cuma jam mulai
+                $query->whereIn('status', ['scheduled', 'ongoing'])
                     ->orderBy('start_time', 'asc');
             })
             ->get();
 
         return view('mentee.sessions.upcoming', compact('sessions'));
+    }
+
+    // HISTORY
+    /**
+     * Menampilkan riwayat sesi yang sudah selesai
+     */
+    public function history()
+{
+    // FIX: Langsung ambil ID User yang login karena tidak ada tabel 'mentees'
+    // mentee_id di database = user_id
+    $menteeId = \Illuminate\Support\Facades\Auth::id();
+    
+    // Query ke tabel learning_sessions lewat learning_session_participants
+    $history = \App\Models\LearningSession::whereHas('participants', function($q) use ($menteeId) {
+            $q->where('mentee_id', $menteeId);
+        })
+        ->where('end_time', '<', now()) // Ambil yang sudah lewat
+        // ->where('is_hidden_for_mentee', false) // Hapus baris ini kalau kolomnya belum lo bikin di DB
+        ->orderBy('end_time', 'desc')
+        ->get();
+
+    return view('mentee.sessions.history', compact('history'));
+}
+    /**
+     * Menyembunyikan riwayat sesi dari pandangan mentee
+     */
+    public function hide($id)
+    {
+        $session = LearningSession::findOrFail($id);
+        
+        // Update kolom is_hidden_for_mentee yang kita buat di migration tadi
+        $session->update(['is_hidden_for_mentee' => true]);
+
+        return back()->with('success', 'Riwayat sesi berhasil dihapus dari daftar.');
     }
 }
 

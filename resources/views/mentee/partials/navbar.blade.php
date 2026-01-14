@@ -23,8 +23,13 @@
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pusat Informasi</a>
                         <div class="dropdown-menu border-0 shadow rounded-3">
-                            <a href="#" class="dropdown-item px-3 py-2"><i class="bi bi-award me-2 text-primary"></i>Scholarships</a>
+                            <a href="{{ route('mentee.scholarships.index') }}" class="dropdown-item px-3 py-2">
+    <i class="bi bi-award me-2 text-primary"></i>Scholarships
+</a>
                             <a href="#" class="dropdown-item px-3 py-2"><i class="bi bi-book me-2 text-primary"></i>Student Guide</a>
+                            <a href="{{ route('mentee.mentors.index') }}" class="dropdown-item px-3 py-2">
+            <i class="bi bi-search me-2 text-primary"></i>Jelajahi Mentor
+        </a>    
                         </div>
                     </div>
 
