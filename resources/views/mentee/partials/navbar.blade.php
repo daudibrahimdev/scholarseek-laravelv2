@@ -23,16 +23,16 @@
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pusat Informasi</a>
                         <div class="dropdown-menu border-0 shadow rounded-3">
-                            <a href="{{ route('mentee.scholarships.index') }}" class="dropdown-item px-3 py-2">
-    <i class="bi bi-award me-2 text-primary"></i>Scholarships
-</a>
-                            <a href="{{ route('mentee.student_guide.index') }}" class="dropdown-item px-3 py-2">
-    <i class="bi bi-book me-2 text-primary"></i>Student Guide
-</a>
-                            <a href="{{ route('mentee.mentors.index') }}" class="dropdown-item px-3 py-2">
-            <i class="bi bi-search me-2 text-primary"></i>Jelajahi Mentor
-        </a>    
-                        </div>
+    <a href="{{ route('mentee.scholarships.index') }}" class="dropdown-item px-3 py-2 btn-hover-white">
+        <i class="bi bi-award me-2 text-primary"></i>Scholarships
+    </a>
+    <a href="{{ route('mentee.student_guide.index') }}" class="dropdown-item px-3 py-2 btn-hover-white">
+        <i class="bi bi-book me-2 text-primary"></i>Student Guide
+    </a>
+    <a href="{{ route('mentee.mentors.index') }}" class="dropdown-item px-3 py-2 btn-hover-white">
+        <i class="bi bi-search me-2 text-primary"></i>Jelajahi Mentor
+    </a>    
+</div>
                     </div>
 
                     @auth
@@ -76,7 +76,9 @@
                                 <div class="dropdown-divider"></div>
                                 <span class="dropdown-header text-uppercase small fw-bold text-muted">Arsip</span>
                                 <a href="{{ route('mentee.sessions.history') }}" class="dropdown-item px-3 py-2">Riwayat Kelas</a>
-                                <a href="{{ route('mentee.bookings.create') }}" class="dropdown-item px-3 py-2 text-primary fw-bold"><i class="bi bi-plus-circle me-1"></i> Ajukan Sesi</a>
+                                <a href="{{ route('mentee.bookings.create') }}" class="dropdown-item px-3 py-2 text-primary fw-bold btn-hover-white">
+                                    <i class="bi bi-plus-circle me-1"></i> Ajukan Sesi
+                                </a>
                             </div>
                         </div>
 
@@ -114,6 +116,15 @@
     </div>
 </div>
 
+<style>
+    .btn-hover-white:hover {
+        color: white !important; 
+        background-color: #0d6b68 !important; 
+    }
+    .btn-hover-white:hover i {
+        color: white !important;
+    }
+</style>
 {{-- SCRIPT INISIALISASI POPOVER --}}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
