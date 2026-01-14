@@ -17,27 +17,13 @@
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('css')
-
-    <style>
-        /* CSS Tambahan untuk memastikan sidebar selalu di depan */
-        @media (min-width: 1200px) {
-            .g-sidenav-pinned .main-content {
-                margin-left: 250px !important;
-            }
-        }
-        #sidenav-main {
-            z-index: 1060 !important;
-        }
-    </style>
 </head>
 
-{{-- PENTING: Class g-sidenav-show dan g-sidenav-pinned wajib ada --}}
-<body class="g-sidenav-show g-sidenav-pinned">
+<body class="">
     
     @include('admin.partials.sidebar')
     
-    {{-- PENTING: Tambahkan id="panel" agar sinkron dengan script Argon --}}
-    <div class="main-content" id="panel">
+    <div class="main-content">
         
         @include('admin.partials.navbar')
         
@@ -51,6 +37,7 @@
         
         <div class="container-fluid mt--7">
             @yield('content')
+            
             @include('admin.partials.footer')
         </div>
     </div>
@@ -61,4 +48,5 @@
     
     @stack('js') 
 </body>
+
 </html>
