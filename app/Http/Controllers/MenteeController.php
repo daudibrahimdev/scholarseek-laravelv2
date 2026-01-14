@@ -229,20 +229,16 @@ class MenteeController extends Controller
         }
     }
 
-    public function upcomingSessions()
+   public function upcomingSessions()
     {
         $menteeId = Auth::id();
 
-        // 1. Jalankan sinkronisasi status instan (Backup jika cronjob delay)
-        // Gunakan helper yang sudah kita buat tadi jika perlu, 
-        // atau biarkan command di background yang menangani.
-
-        // 2. Ambil sesi yang statusnya masih aktif (Scheduled & Ongoing)
         $sessions = LearningSessionParticipant::with(['session.mentor.user'])
             ->where('mentee_id', $menteeId)
             ->whereHas('session', function($query) {
-                // Kita filter berdasarkan status, bukan cuma jam mulai
                 $query->whereIn('status', ['scheduled', 'ongoing'])
+                    // TAMBAHKAN INI: Hanya ambil yang waktu selesainya belum lewat dari sekarang
+                    ->where('end_time', '>', now()) 
                     ->orderBy('start_time', 'asc');
             })
             ->get();
