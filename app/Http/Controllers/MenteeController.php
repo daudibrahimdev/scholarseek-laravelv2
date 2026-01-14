@@ -388,5 +388,30 @@ class MenteeController extends Controller
         return view('mentee.scholarships.index', compact('scholarships', 'categories'));
     }
 
+    // dokumen
+    public function studentGuideIndex(Request $request)
+    {
+        $query = \App\Models\Document::with('category'); //
+
+        // Filter berdasarkan kategori (Checkbox)
+        if ($request->filled('categories')) {
+            $query->whereIn('document_category_id', $request->categories);
+        }
+
+        // Pencarian Judul/Deskripsi
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $documents = $query->latest()->paginate(9);
+        $categories = \App\Models\DocumentCategory::all(); //
+
+        return view('mentee.student_guide.index', compact('documents', 'categories'));
+    }
+
 }
 

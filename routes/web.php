@@ -99,6 +99,9 @@ Route::middleware(['auth', 'role:mentee'])->prefix('mentee')->name('mentee.')->g
     // SCHOLARSHIPSS
     Route::get('/scholarships', [MenteeController::class, 'scholarshipIndex'])->name('scholarships.index');
 
+    // DOCUMENTS
+    Route::get('/student-guide', [MenteeController::class, 'studentGuideIndex'])->name('student_guide.index');
+
 
     // Route ini akan menampilkan FORM pengajuan permintaan
 Route::get('/requests/{userPackageId}/create', [SessionRequestController::class, 'create'])->name('session.request.create');
