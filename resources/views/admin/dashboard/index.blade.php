@@ -4,86 +4,94 @@
 
 @section('header_stats')
     <div class="row">
+        {{-- CARD 1: TOTAL MENTEE --}}
         <div class="col-xl-3 col-lg-6">
             <div class="card card-stats mb-4 mb-xl-0">
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
                             <h5 class="card-title text-uppercase text-muted mb-0">Total Mentee</h5>
-                            <span class="h2 font-weight-bold mb-0">350,897</span>
+                            <span class="h2 font-weight-bold mb-0">{{ number_format($totalMentee) }}</span>
                         </div>
                         <div class="col-auto">
                             <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
-                                <i class="fas fa-chart-bar"></i>
+                                <i class="fas fa-users"></i>
                             </div>
                         </div>
                     </div>
                     <p class="mt-3 mb-0 text-muted text-sm">
-                        <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> 3.48%</span>
-                        <span class="text-nowrap">Since last month</span>
+                        <span class="text-nowrap">User terdaftar sebagai mentee</span>
                     </p>
                 </div>
             </div>
         </div>
+
+        {{-- CARD 2: MENTOR AKTIF --}}
         <div class="col-xl-3 col-lg-6">
             <div class="card card-stats mb-4 mb-xl-0">
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
                             <h5 class="card-title text-uppercase text-muted mb-0">Mentor Aktif</h5>
-                            <span class="h2 font-weight-bold mb-0">2,356</span>
+                            <span class="h2 font-weight-bold mb-0">{{ number_format($totalMentor) }}</span>
                         </div>
                         <div class="col-auto">
-                            <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
-                                <i class="fas fa-chart-pie"></i>
+                            <div class="icon icon-shape bg-success text-white rounded-circle shadow">
+                                <i class="fas fa-chalkboard-teacher"></i>
                             </div>
                         </div>
                     </div>
                     <p class="mt-3 mb-0 text-muted text-sm">
-                        <span class="text-danger mr-2"> 5</span>
-                        <span class="text-nowrap">Menunggu persetujuan</span>
+                        <span class="text-nowrap">Siap mengajar</span>
                     </p>
                 </div>
             </div>
         </div>
+
+        {{-- CARD 3: BEASISWA TERDAFTAR --}}
         <div class="col-xl-3 col-lg-6">
             <div class="card card-stats mb-4 mb-xl-0">
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0">Beasiswa Aktif</h5>
-                            <span class="h2 font-weight-bold mb-0">924</span>
+                            <h5 class="card-title text-uppercase text-muted mb-0">Data Beasiswa</h5>
+                            <span class="h2 font-weight-bold mb-0">{{ number_format($totalScholarship) }}</span>
                         </div>
                         <div class="col-auto">
                             <div class="icon icon-shape bg-yellow text-white rounded-circle shadow">
-                                <i class="fas fa-users"></i>
+                                <i class="fas fa-briefcase"></i>
                             </div>
                         </div>
                     </div>
                     <p class="mt-3 mb-0 text-muted text-sm">
-                        <span class="text-warning mr-2"><i class="fas fa-arrow-down"></i> 1.10%</span>
-                        <span class="text-nowrap">Since yesterday</span>
+                        <span class="text-nowrap">Program tersedia</span>
                     </p>
                 </div>
             </div>
         </div>
+
+        {{-- CARD 4: ACTION NEEDED (MENTOR PENDING) --}}
         <div class="col-xl-3 col-lg-6">
             <div class="card card-stats mb-4 mb-xl-0">
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0">Sesi Bulan Ini</h5>
-                            <span class="h2 font-weight-bold mb-0">10</span>
+                            <h5 class="card-title text-uppercase text-muted mb-0">Butuh Approval</h5>
+                            <span class="h2 font-weight-bold mb-0">{{ $pendingMentorCount }}</span>
                         </div>
                         <div class="col-auto">
                             <div class="icon icon-shape bg-info text-white rounded-circle shadow">
-                                <i class="fas fa-percent"></i>
+                                <i class="fas fa-user-clock"></i>
                             </div>
                         </div>
                     </div>
                     <p class="mt-3 mb-0 text-muted text-sm">
-                        <span class="text-success mr-2"><i class="fas fa-arrow-up"></i> 12%</span>
-                        <span class="text-nowrap">Since last month</span>
+                        @if($pendingMentorCount > 0)
+                            <span class="text-danger mr-2"><i class="fas fa-arrow-up"></i> Urgent</span>
+                        @else
+                            <span class="text-success mr-2"><i class="fas fa-check"></i> Aman</span>
+                        @endif
+                        <span class="text-nowrap">Menunggu verifikasi</span>
                     </p>
                 </div>
             </div>
@@ -93,69 +101,17 @@
 
 @section('content')
     <div class="row">
-        <div class="col-xl-8 mb-5 mb-xl-0">
-            <div class="card bg-gradient-default shadow">
-                <div class="card-header bg-transparent">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
-                            <h2 class="text-white mb-0">Sales value</h2>
-                        </div>
-                        <div class="col">
-                            <ul class="nav nav-pills justify-content-end">
-                                <li class="nav-item mr-2 mr-md-0" data-toggle="chart" data-target="#chart-sales" data-update='{"data":{"datasets":[{"data":[0, 20, 10, 30, 15, 40, 20, 60, 60]}]}}' data-prefix="$" data-suffix="k">
-                                    <a href="#" class="nav-link py-2 px-3 active" data-toggle="tab">
-                                        <span class="d-none d-md-block">Month</span>
-                                        <span class="d-md-none">M</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item" data-toggle="chart" data-target="#chart-sales" data-update='{"data":{"datasets":[{"data":[0, 20, 5, 25, 10, 30, 15, 40, 40]}]}}' data-prefix="$" data-suffix="k">
-                                    <a href="#" class="nav-link py-2 px-3" data-toggle="tab">
-                                        <span class="d-none d-md-block">Week</span>
-                                        <span class="d-md-none">W</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="chart">
-                        <canvas id="chart-sales" class="chart-canvas"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
         
-        <div class="col-xl-4">
-            <div class="card shadow">
-                <div class="card-header bg-transparent">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <h6 class="text-uppercase text-muted ls-1 mb-1">Performance</h6>
-                            <h2 class="mb-0">Total order</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="chart">
-                        <canvas id="chart-orders" class="chart-canvas"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row mt-5">
+        {{-- BAGIAN 1: TABEL APPROVAL MENTOR (Paling Penting buat Admin) --}}
         <div class="col-xl-8 mb-5 mb-xl-0">
             <div class="card shadow">
                 <div class="card-header border-0">
                     <div class="row align-items-center">
                         <div class="col">
-                            <h3 class="mb-0">Page visits</h3>
+                            <h3 class="mb-0">Pendaftaran Mentor Baru</h3>
                         </div>
                         <div class="col text-right">
-                            <a href="#!" class="btn btn-sm btn-primary">See all</a>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-primary">Lihat Semua</a>
                         </div>
                     </div>
                 </div>
@@ -163,58 +119,63 @@
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                             <tr>
-                                <th scope="col">Page name</th>
-                                <th scope="col">Visitors</th>
-                                <th scope="col">Unique users</th>
-                                <th scope="col">Bounce rate</th>
+                                <th scope="col">Nama</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Tanggal Daftar</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @forelse($pendingMentors as $mentor)
                             <tr>
-                                <th scope="row">/argon/</th>
-                                <td>4,569</td>
-                                <td>340</td>
-                                <td><i class="fas fa-arrow-up text-success mr-3"></i> 46,53%</td>
+                                <th scope="row">
+                                    <div class="media align-items-center">
+                                        <span class="avatar avatar-sm rounded-circle mr-3 bg-light text-primary font-weight-bold">
+                                            {{ substr($mentor->name, 0, 1) }}
+                                        </span>
+                                        <div class="media-body">
+                                            <span class="mb-0 text-sm font-weight-bold">{{ $mentor->name }}</span>
+                                        </div>
+                                    </div>
+                                </th>
+                                <td>{{ $mentor->email }}</td>
+                                <td>{{ $mentor->created_at->format('d M Y') }}</td>
+                                <td>
+                                    <span class="badge badge-dot mr-4">
+                                        <i class="bg-warning"></i> Pending
+                                    </span>
+                                </td>
+                                <td>
+                                    {{-- Tombol Quick Approve (Optional, arahkan ke detail user) --}}
+                                    <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-info">
+                                        Review
+                                    </a>
+                                </td>
                             </tr>
+                            @empty
                             <tr>
-                                <th scope="row">/argon/index.html</th>
-                                <td>3,985</td>
-                                <td>319</td>
-                                <td><i class="fas fa-arrow-down text-warning mr-3"></i> 46,53%</td>
+                                <td colspan="5" class="text-center py-4">
+                                    <span class="text-muted font-italic">Tidak ada pendaftaran mentor baru.</span>
+                                </td>
                             </tr>
-                            <tr>
-                                <th scope="row">/argon/charts.html</th>
-                                <td>3,513</td>
-                                <td>294</td>
-                                <td><i class="fas fa-arrow-down text-warning mr-3"></i> 36,49%</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">/argon/tables.html</th>
-                                <td>2,050</td>
-                                <td>147</td>
-                                <td><i class="fas fa-arrow-up text-success mr-3"></i> 50,87%</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">/argon/profile.html</th>
-                                <td>1,795</td>
-                                <td>190</td>
-                                <td><i class="fas fa-arrow-down text-danger mr-3"></i> 46,53%</td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
         
+        {{-- BAGIAN 2: TRANSAKSI TERBARU (Ringkasan) --}}
         <div class="col-xl-4">
             <div class="card shadow">
                 <div class="card-header border-0">
                     <div class="row align-items-center">
                         <div class="col">
-                            <h3 class="mb-0">Social traffic</h3>
+                            <h3 class="mb-0">Transaksi Terbaru</h3>
                         </div>
                         <div class="col text-right">
-                            <a href="#!" class="btn btn-sm btn-primary">See all</a>
+                            {{-- <a href="#!" class="btn btn-sm btn-primary">See all</a> --}}
                         </div>
                     </div>
                 </div>
@@ -222,91 +183,51 @@
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                             <tr>
-                                <th scope="col">Referral</th>
-                                <th scope="col">Visitors</th>
-                                <th scope="col"></th>
+                                <th scope="col">User</th>
+                                <th scope="col">Paket</th>
+                                <th scope="col">Jumlah</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @forelse($recentTransactions as $transaction)
                             <tr>
-                                <th scope="row">Facebook</th>
-                                <td>1,480</td>
+                                <th scope="row">
+                                    {{ Str::limit($transaction->user->name ?? 'User', 10) }}
+                                </th>
+                                <td>
+                                    {{ $transaction->package->name ?? '-' }}
+                                </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <span class="mr-2">60%</span>
-                                        <div>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-gradient-danger" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;"></div>
-                                            </div>
-                                        </div>
+                                        <span class="text-success font-weight-bold">Rp {{ number_format($transaction->amount / 1000) }}k</span>
                                     </div>
                                 </td>
                             </tr>
+                            @empty
                             <tr>
-                                <th scope="row">Facebook</th>
-                                <td>5,480</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="mr-2">70%</span>
-                                        <div>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-gradient-success" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: 70%;"></div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <td colspan="3" class="text-center py-4">
+                                    <small class="text-muted">Belum ada transaksi.</small>
                                 </td>
                             </tr>
-                            <tr>
-                                <th scope="row">Google</th>
-                                <td>4,807</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="mr-2">80%</span>
-                                        <div>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-gradient-primary" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%;"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Instagram</th>
-                                <td>3,678</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="mr-2">75%</span>
-                                        <div>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-gradient-info" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%;"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">twitter</th>
-                                <td>2,645</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="mr-2">30%</span>
-                                        <div>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-gradient-warning" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" style="width: 30%;"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
+            
+            {{-- Shortcut Links --}}
+            {{-- <div class="card shadow mt-4">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">Jalan Pintas</h6>
+                    <a href="{{ route('admin.scholarship.create') }}" class="btn btn-block btn-primary text-white mb-2">
+                        <i class="ni ni-fat-add mr-1"></i> Tambah Beasiswa Baru
+                    </a>
+                    <a href="{{ route('admin.documents.create') }}" class="btn btn-block btn-info text-white">
+                        <i class="ni ni-cloud-upload-96 mr-1"></i> Upload Dokumen
+                    </a>
+                </div>
+            </div> --}}
+
         </div>
     </div>
-    
-    @push('js')
-        <script src="{{ asset('assets/js/plugins/chart.js/dist/Chart.min.js') }}"></script>
-        <script src="{{ asset('assets/js/plugins/chart.js/dist/Chart.extension.js') }}"></script>
-    @endpush
 @endsection
