@@ -1,98 +1,103 @@
 @extends('layouts.mentee_master')
 
+@section('title', 'Riwayat Transaksi')
+
 @section('content')
-<div class="container py-5">
-    {{-- Header Section --}}
-    <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
-        <h6 class="text-primary text-uppercase font-weight-bold">// Finance //</h6>
-        <h1 class="mb-5">Riwayat Transaksi</h1>
+<div class="container-fluid pb-5 bg-primary hero-header">
+    <div class="container py-5">
+        <div class="row g-3 justify-content-center">
+            <div class="col-12 text-center">
+                <h1 class="display-1 mb-0 animated zoomIn text-black">Riwayat Transaksi</h1>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="card shadow border-0 p-4 wow fadeInUp" data-wow-delay="0.3s" style="border-radius: 15px;">
-        <div class="table-responsive">
-            <table class="table align-items-center table-flush mb-0">
-                <thead class="thead-light">
-                    <tr>
-                        <th class="text-primary fw-bold" style="width: 15%">ID Transaksi</th>
-                        <th class="text-primary fw-bold">Nama Paket</th>
-                        <th class="text-primary fw-bold">Metode</th>
-                        <th class="text-primary fw-bold">Total Bayar</th>
-                        <th class="text-primary fw-bold text-center">Status</th>
-                        <th class="text-primary fw-bold">Tanggal</th>
-                        <th class="text-primary fw-bold text-center" style="width: 200px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="text-dark">
-                    @forelse($transactions as $t)
-                    <tr>
-                        <td>
-                            <span class="font-weight-bold">
-                                #{{ strtoupper(substr($t->reference_id ?? $t->id, 0, 8)) }}
-                            </span>
-                        </td>
-                        <td>{{ $t->package->name ?? 'Paket Bimbingan' }}</td>
-                        <td class="text-uppercase small fw-bold text-muted">
-                            {{ $t->payment_method ?? 'Transfer' }}
-                        </td>
-                        <td>
-                            <span class="font-weight-bold">
-                                Rp {{ number_format($t->amount, 0, ',', '.') }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            @if($t->status == 'paid' || $t->status == 'success')
-                                <span class="badge bg-success text-white px-3 py-2">Berhasil</span>
-                            @elseif($t->status == 'pending')
-                                <span class="badge bg-warning text-dark px-3 py-2">Menunggu</span>
-                            @elseif($t->status == 'cancelled' || $t->status == 'dibatalkan')
-                                <span class="badge bg-secondary text-white px-3 py-2">Dibatalkan</span>
-                            @else
-                                <span class="badge bg-danger text-white px-3 py-2">Gagal</span>
-                            @endif
-                        </td>
-                        <td class="small">{{ $t->created_at->format('d M Y') }}</td>
-                        <td>
-                            <div class="d-flex justify-content-center align-items-center gap-2">
-                                @if($t->status == 'pending')
-                                    {{-- Tombol Bayar Sekarang (Lebih Kecil & Presisi) --}}
-                                    <a href="{{ route('mentee.checkout.success', $t->id) }}" 
-                                       class="btn btn-xs btn-warning fw-bold px-2 py-1 shadow-sm" 
-                                       style="font-size: 11px; white-space: nowrap;">
-                                        <i class="bi bi-wallet2 me-1"></i> Bayar
-                                    </a>
-
-                                    {{-- Tombol Cancel --}}
-                                    <form action="{{ route('mentee.checkout.cancel', $t->id) }}" 
-                                          method="POST" id="cancelForm{{ $t->id }}" class="m-0 p-0">
-                                        @csrf
-                                        <button type="button" 
-                                                onclick="confirmCancel('{{ $t->id }}')" 
-                                                class="btn btn-sm btn-outline-danger border-0 p-1" 
-                                                title="Hapus Transaksi">
-                                            <i class="bi bi-trash3-fill" style="font-size: 14px;"></i>
-                                        </button>
-                                    </form>
-                                @elseif($t->status == 'paid' || $t->status == 'success')
-                                    <a href="{{ route('mentee.transactions.invoice', $t->id) }}" 
-                                       class="btn btn-sm btn-outline-primary px-3 fw-bold shadow-sm">
-                                        <i class="bi bi-receipt me-1"></i> Invoice
-                                    </a>
+<div class="container py-5">
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden wow fadeInUp" data-wow-delay="0.3s">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-uppercase small fw-bold text-primary">ID & Paket</th>
+                            <th class="py-3 text-uppercase small fw-bold text-primary">Metode</th>
+                            <th class="py-3 text-uppercase small fw-bold text-primary">Total Bayar</th>
+                            <th class="py-3 text-uppercase small fw-bold text-primary text-center">Status</th>
+                            <th class="py-3 text-uppercase small fw-bold text-primary">Tanggal</th>
+                            <th class="pe-4 py-3 text-center text-uppercase small fw-bold text-primary">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($transactions as $t)
+                        <tr>
+                            <td class="ps-4 py-4">
+                                <div class="fw-bold text-dark">#{{ strtoupper(substr($t->reference_id ?? $t->id, 0, 8)) }}</div>
+                                <div class="small text-muted">{{ $t->package->name ?? 'Paket Bimbingan' }}</div>
+                            </td>
+                            <td class="py-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="btn-sm-square bg-light rounded-circle me-2">
+                                        <i class="bi bi-credit-card-2-front text-primary"></i>
+                                    </div>
+                                    <span class="text-uppercase small fw-bold text-muted">{{ $t->payment_method ?? 'Transfer' }}</span>
+                                </div>
+                            </td>
+                            <td class="py-4">
+                                <span class="fw-bold text-dark">Rp {{ number_format($t->amount, 0, ',', '.') }}</span>
+                            </td>
+                            <td class="text-center py-4">
+                                @if($t->status == 'paid' || $t->status == 'success')
+                                    <span class="badge bg-soft-success text-success border border-success rounded-pill px-3 py-2">Berhasil</span>
+                                @elseif($t->status == 'pending')
+                                    <span class="badge bg-soft-warning text-warning border border-warning rounded-pill px-3 py-2">Menunggu</span>
+                                @elseif($t->status == 'cancelled' || $t->status == 'dibatalkan')
+                                    <span class="badge bg-soft-secondary text-secondary border border-secondary rounded-pill px-3 py-2">Batal</span>
+                                @else
+                                    <span class="badge bg-soft-danger text-danger border border-danger rounded-pill px-3 py-2">Gagal</span>
                                 @endif
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="bi bi-cart-x text-muted" style="font-size: 3.5rem;"></i>
-                            </div>
-                            <h5 class="text-muted">Belum ada riwayat transaksi.</h5>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                            </td>
+                            <td class="py-4 small text-muted">
+                                <i class="bi bi-calendar-event me-1"></i>{{ $t->created_at->format('d M Y') }}
+                            </td>
+                            <td class="pe-4 text-center py-4">
+                                <div class="d-flex justify-content-center align-items-center gap-2">
+                                    @if($t->status == 'pending')
+                                        <a href="{{ route('mentee.checkout.success', $t->id) }}" 
+                                           class="btn btn-warning btn-sm fw-bold rounded-pill px-3 shadow-sm">
+                                            <i class="bi bi-wallet2 me-1"></i> Bayar
+                                        </a>
+
+                                        <form action="{{ route('mentee.checkout.cancel', $t->id) }}" 
+                                              method="POST" id="cancelForm{{ $t->id }}" class="m-0 p-0">
+                                            @csrf
+                                            <button type="button" onclick="confirmCancel('{{ $t->id }}')" 
+                                                    class="btn btn-outline-danger btn-sm rounded-circle" title="Hapus">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
+                                    @elseif($t->status == 'paid' || $t->status == 'success')
+                                        <a href="{{ route('mentee.transactions.invoice', $t->id) }}" 
+                                           class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="bi bi-receipt me-1"></i> Invoice
+                                        </a>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-cart-x text-muted" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="text-muted">Belum ada riwayat transaksi.</h5>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -119,31 +124,32 @@
     }
 
     @if(session('success'))
-        Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#0d6b68' });
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#0d6b68', borderRadius: '15px' });
     @endif
 </script>
 
 <style>
-    .table thead th {
-        background-color: #f8f9fa;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.5px;
-        border-top: none;
-        vertical-align: middle;
+    /* Desain Soft Badge Elegan */
+    .bg-soft-success { background-color: #ecfdf5; }
+    .bg-soft-warning { background-color: #fffbeb; }
+    .bg-soft-danger { background-color: #fef2f2; }
+    .bg-soft-secondary { background-color: #f8fafc; }
+    
+    .badge { font-size: 11px; font-weight: 700; }
+
+    /* Hover Effect Row */
+    .table-hover tbody tr:hover {
+        background-color: #f8fafc;
+        transition: 0.2s;
     }
-    .table tbody td {
-        vertical-align: middle;
-        padding: 1rem 0.75rem;
+
+    /* Icon Square Style */
+    .btn-sm-square {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    .btn-xs {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-        line-height: 1.5;
-        border-radius: 5px;
-    }
-    .btn-warning { background-color: #ffc107; border-color: #ffc107; color: #000; }
-    .btn-warning:hover { background-color: #e0a800; color: #000; }
-    .badge { font-weight: 700; border-radius: 6px; font-size: 10px; }
 </style>
 @endsection

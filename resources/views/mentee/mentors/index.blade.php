@@ -69,10 +69,13 @@
 </style>
 
 {{-- Hero Section - Rata Tengah --}}
-<div class="container-fluid hero-header-custom mb-5">
-    <div class="container py-5 text-center">
-        <h1 class="display-4 text-white animated zoomIn fw-bold mb-3">Temukan Mentor</h1>
-        <p class="text-white opacity-75 mx-auto" style="max-width: 600px;">Cari mentor profesional yang siap membimbingmu meraih beasiswa impian secara privat.</p>
+<div class="container-fluid pb-5 bg-primary hero-header">
+    <div class="container py-5">
+        <div class="row g-3 justify-content-center">
+            <div class="col-12 text-center">
+                <h1 class="display-1 mb-0 animated zoomIn text-black">Temukan Mentor</h1>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -136,7 +139,6 @@
                         <a href="{{ route('mentee.packages.index') }}" class="btn btn-primary rounded-pill py-2 fw-bold shadow-sm">
                             Pilih Mentor Ini
                         </a>
-                        <a href="#" class="btn btn-outline-dark rounded-pill py-2 btn-sm fw-bold">Detail Profil</a>
                     </div>
                 </div>
             </div>

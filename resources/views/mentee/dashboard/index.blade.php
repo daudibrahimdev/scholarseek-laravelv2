@@ -2,13 +2,114 @@
 
 @section('title', 'Home')
 
+@push('css')
+<style>
+    /* Card Mentor Custom */
+    .mentor-card-custom {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        background: #fff;
+        transition: 0.3s;
+    }
+    .mentor-img-container {
+        position: relative;
+        height: 250px;
+    }
+    .mentor-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .mentor-status-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: #008a4e;
+        color: #fff;
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .mentor-info-body {
+        padding: 20px;
+        text-align: center;
+    }
+    .mentor-name {
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 5px;
+        font-size: 1.2rem;
+    }
+    .mentor-location {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 15px;
+    }
+    .mentor-tags .badge {
+        background: #e6f3f2;
+        color: #0d6b68;
+        font-size: 10px;
+        border: none;
+        margin: 2px;
+        padding: 6px 12px;
+    }
+    .mentor-bio {
+        font-size: 13px;
+        color: #444;
+        font-style: italic;
+        margin: 15px 0;
+    }
+    .btn-mentor-primary {
+        background: #0d6b68;
+        color: #fff;
+        border-radius: 12px;
+        font-weight: bold;
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: none;
+    }
+    .btn-mentor-outline {
+        background: #fff;
+        color: #1a1a1a;
+        border: 1px solid #1a1a1a;
+        border-radius: 12px;
+        font-weight: bold;
+        width: 100%;
+        padding: 10px;
+    }
+
+    /* Scholarship Overlay Revisi */
+    .project-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        /* Linear gradient dari gelap di bawah ke transparan di atas */
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%);
+        transition: 0.5s;
+    }
+    .project-item:hover .project-overlay {
+        background: rgba(13, 107, 104, 0.8);
+    }
+</style>
+@endpush
+
 @section('content')
+    {{-- Hero Start - Tetap Standar ISTUDIO --}}
     <div class="container-fluid pb-5 hero-header bg-light mb-5">
         <div class="container py-5">
             <div class="row g-5 align-items-center mb-5">
                 <div class="col-lg-6">
-                    <h1 class="display-1 mb-4 animated slideInRight">Every Dream <br>Is<span class="text-primary"> Worth</span>
-                        Discovering</h1>
+                    <h1 class="display-1 mb-4 animated slideInRight">Every Dream <br>Is<span class="text-primary"> Worth</span> Discovering</h1>
                     <h5 class="d-inline-block border border-2 border-white py-3 px-5 mb-0 animated slideInRight">
                         Find scholarships and opportunities that bring your dreams closer</h5>
                 </div>
@@ -20,245 +121,179 @@
                     </div>
                 </div>
             </div>
+            {{-- Point Features --}}
             <div class="row g-5 animated fadeIn">
+                @php
+                    $features = [
+                        ['icon' => 'fa-search', 'title' => 'Temukan Beasiswa Impianmu'],
+                        ['icon' => 'fa-users', 'title' => 'Terhubung dengan Mentor Berpengalaman'],
+                        ['icon' => 'fa-graduation-cap', 'title' => 'Bangun Rencana Belajarmu'],
+                        ['icon' => 'fa-globe', 'title' => 'Mulai Perjalanan Globalmu']
+                    ];
+                @endphp
+                @foreach($features as $f)
                 <div class="col-md-6 col-lg-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0 btn-square border border-2 border-white me-3">
-                            <i class="fa fa-robot text-primary"></i>
+                            <i class="fa {{ $f['icon'] }} text-primary"></i>
                         </div>
-                        <h5 class="lh-base mb-0">Temukan Beasiswa Impianmu</h5>
+                        <h5 class="lh-base mb-0">{{ $f['title'] }}</h5>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0 btn-square border border-2 border-white me-3">
-                            <i class="fa fa-robot text-primary"></i>
-                        </div>
-                        <h5 class="lh-base mb-0">Terhubung dengan Mentor Berpengalaman</h5>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0 btn-square border border-2 border-white me-3">
-                            <i class="fa fa-robot text-primary"></i>
-                        </div>
-                        <h5 class="lh-base mb-0">Bangun Rencana Belajarmu dari Sekarang</h5>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0 btn-square border border-2 border-white me-3">
-                            <i class="fa fa-robot text-primary"></i>
-                        </div>
-                        <h5 class="lh-base mb-0">Mulai Perjalanan Globalmu Hari Ini</h5>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
+
+    {{-- SECTION BEASISWA --}}
     <div class="container-fluid mt-5">
         <div class="container mt-5">
             <div class="row g-0">
                 <div class="col-lg-5 wow fadeIn" data-wow-delay="0.1s">
                     <div class="d-flex flex-column justify-content-center bg-primary h-100 p-5">
-                        <h1 class="text-white mb-5">Berbagai <span
-                                class="text-uppercase text-primary bg-light px-2">Program  </span></h1>
+                        <h1 class="text-white mb-5">Berbagai <span class="text-uppercase text-primary bg-light px-2">Program</span></h1>
                         <h4 class="text-white mb-0"> <span class="display-1">Beasiswa</span></h4>
                     </div>
-                    <a href="#" class="btn btn-light py-3 px-5 fw-bold rounded-pill">
-                        Lihat Semua Beasiswa
-                        <i class="fa fa-arrow-right ms-2"></i>
+                    <a href="{{ route('mentee.scholarships.index') }}" class="btn btn-light py-3 px-5 fw-bold rounded-pill shadow-sm">
+                        Lihat Semua Beasiswa <i class="fa fa-arrow-right ms-2"></i>
                     </a>
                 </div>
                 <div class="col-lg-7">
                     <div class="row g-0">
-                        <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.2s">
+                        @php
+                            $projects = [
+                                ['img' => 'project-1.png', 'title' => 'Global Short Program'],
+                                ['img' => 'project-2.png', 'title' => 'Pascasarjana Global'],
+                                ['img' => 'project-3.png', 'title' => 'S1 Global: Fully Funded'],
+                                ['img' => 'project-4.png', 'title' => 'Beasiswa Nasional'],
+                                ['img' => 'project-5.png', 'title' => 'Beasiswa SMP & SMA'],
+                                ['img' => 'project-6.png', 'title' => 'Dan Banyak Lagi'],
+                            ];
+                        @endphp
+                        @foreach($projects as $index => $item)
+                        <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.{{ $index+2 }}s">
                             <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/project-1.png') }}" alt="">
-                                <a class="project-overlay text-decoration-none" href="#!">
-                                    <h4 class="text-black">Global Short Program</h4>
-                                    <small class="text-white">72 Projects</small>
+                                <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/'.$item['img']) }}" alt="">
+                                <a class="project-overlay text-decoration-none text-center" href="{{ route('mentee.scholarships.index') }}">
+                                    <h4 class="text-white fw-bold mb-0" style="font-family: inherit;">{{ $item['title'] }}</h4>
                                 </a>
                             </div>
                         </div>
-                        <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.3s">
-                            <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/project-2.png') }}" alt="">
-                                <a class="project-overlay text-decoration-none" href="#!">
-                                    <h4 class="text-black">Pascasarjana Global (Fully Funded)</h4>
-                                    <small class="text-white">67 Projects</small>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.4s">
-                            <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/project-3.png') }}" alt="">
-                                <a class="project-overlay text-decoration-none" href="#!">
-                                    <h4 class="text-black">S1 Global: Fully Funded</h4>
-                                    <small class="text-white">53 Projects</small>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.5s">
-                            <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/project-4.png') }}" alt="">
-                                <a class="project-overlay text-decoration-none" href="#!">
-                                    <h4 class="text-black">Beasiswa Nasional & Ikatan Dinas</h4>
-                                    <small class="text-white">33 Projects</small>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.6s">
-                            <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/project-5.png') }}" alt="">
-                                <a class="project-overlay text-decoration-none" href="#!">
-                                    <h4 class="text-black">Beasiswa SMP & SMA</h4>
-                                    <small class="text-white">87 Projects</small>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.7s">
-                            <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/project-6.png') }}" alt="">
-                                <a class="project-overlay text-decoration-none" href="#!">
-                                    <h4 class="text-black">dan masih banyak lagi</h4>
-                                    <small class="text-white">69 Projects</small>
-                                </a>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    {{-- SECTION STUDENT GUIDE --}}
     <div class="container-fluid py-5">
         <div class="container py-5">
-            <div class="row g-5 align-items-center">
+            <div class="row g-5 align-items-center mb-4">
                 <div class="col-lg-5 wow fadeIn" data-wow-delay="0.1s">
-                    <h1 class="mb-5">Baca<span
-                            class="text-uppercase text-primary bg-light px-2">Panduan Dokumen</span></h1>
-                    <p>Langkah awal menuju keberhasilan aplikasi beasiswa adalah memastikan kelengkapan dan kepatuhan semua dokumen yang dipersyaratkan.</p>
-                    <p class="mb-5">Karena setiap program beasiswa memiliki visi, misi, dan persyaratan uniknya, kami sediakan semua referensi dokumentasi esensial untuk kamu disini</p>
+                    <h1 class="mb-5">Baca <span class="text-uppercase text-primary bg-light px-2">Panduan Dokumen</span></h1>
+                    <p>Langkah awal menuju keberhasilan aplikasi beasiswa adalah memastikan kelengkapan dokumen yang dipersyaratkan.</p>
                 </div>
                 <div class="col-lg-7">
                     <div class="row g-0">
                         <div class="col-md-6 wow fadeIn" data-wow-delay="0.2s">
-                            <div class="service-item h-100 d-flex flex-column justify-content-center bg-primary">
-                                <a href="#!" class="service-img position-relative mb-4">
-                                    <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/Service-1.png') }}" alt="">
-                                    <h3>Panduan & Persyaratan Administrasi</h3>
-                                </a>
-                                <p class="mb-0">Kamu bisa cek berbagai dokumen panduan pendaftaran untuk berbagai beasiswa disini</p>
+                            <div class="service-item h-100 d-flex flex-column justify-content-center bg-primary p-4">
+                                <img class="img-fluid w-100 mb-4" src="{{ asset('mentee_assets/img/Service-1.png') }}" alt="">
+                                <h3 class="text-white">Panduan Administrasi</h3>
                             </div>
                         </div>
                         <div class="col-md-6 wow fadeIn" data-wow-delay="0.4s">
-                            <div class="service-item h-100 d-flex flex-column justify-content-center bg-light">
-                                <a href="#!" class="service-img position-relative mb-4">
-                                    <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/Service-2.png') }}" alt="">
-                                    <h3>Kumpulan Esai</h3>
-                                </a>
-                                <p class="mb-0">Lihat koleksi esai terbaik dari para penerima beasiswa (awardee) yang berhasil lolos dari beragam program</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6 wow fadeIn" data-wow-delay="0.6s">
-                            <div class="service-item h-100 d-flex flex-column justify-content-center bg-light">
-                                <a href="#!" class="service-img position-relative mb-4">
-                                    <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/Service-3.png') }}" alt="">
-                                    <h3>Kumpulan Motivation Letter</h3>
-                                </a>
-                                <p class="mb-0">Berbagai contoh-contoh Motivation Letter dari para awardee yang berhasil losos</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6 wow fadeIn" data-wow-delay="0.8s">
-                            <div class="service-item h-100 d-flex flex-column justify-content-center bg-primary">
-                                <a href="#!" class="service-img position-relative mb-4">
-                                    <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/service-44.png') }}" alt="">
-                                    <h3>Contoh CV dan masih banyak lagi</h3>
-                                </a>
-                                <p class="mb-0">Akses beragam contoh Curriculum Vitae (CV) dan berbagai dokumentasi penting dan esensial terkait pendaftaran beasiswa</p>
+                            <div class="service-item h-100 d-flex flex-column justify-content-center bg-light p-4">
+                                <img class="img-fluid w-100 mb-4" src="{{ asset('mentee_assets/img/Service-2.png') }}" alt="">
+                                <h3>Kumpulan Esai</h3>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <a href="#" class="btn btn-light py-3 px-5 fw-bold rounded-pill">
-                Lihat Semua Dokumen
-                <i class="fa fa-arrow-right ms-2"></i>
-            </a>
+            <div class="text-start">
+                <a href="{{ route('mentee.student_guide.index') }}" class="btn btn-light py-3 px-5 fw-bold rounded-pill border">
+                    Lihat Semua Dokumen <i class="fa fa-arrow-right ms-2"></i>
+                </a>
+            </div>
         </div>
     </div>
+
+    {{-- SECTION MENTOR REVISI --}}
     <div class="container-fluid bg-light py-5">
         <div class="container py-5">
-            <h1 class="mb-5">Konsultasikan dengan <span class="text-uppercase text-primary bg-light px-2">Para Mentor</span>
-            </h1>
+            <h1 class="mb-5">Konsultasikan dengan <span class="text-uppercase text-primary bg-white px-2 shadow-sm">Para Mentor</span></h1>
             <div class="row g-4">
+                @forelse($featuredMentors as $mentor)
                 <div class="col-md-6 col-lg-3 wow fadeIn" data-wow-delay="0.1s">
-                    <div class="team-item position-relative overflow-hidden">
-                        <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/team-1.jpg') }}" alt="">
-                        <div class="team-overlay">
-                            <small class="mb-2">Scholarship Advisor</small>
-                            <h4 class="lh-base text-light">Boris Johnson</h4>
-                            
-                            <a href="#!" class="btn-apply">Ajukan Bimbingan</a>
-
-                            <div class="d-flex justify-content-center">
-                                <a class="btn btn-outline-primary btn-sm-square border-2 me-2" href="#!"><i class="fab fa-facebook-f"></i></a>
-                                <a class="btn btn-outline-primary btn-sm-square border-2 me-2" href="#!"><i class="fab fa-twitter"></i></a>
-                                <a class="btn btn-outline-primary btn-sm-square border-2 me-2" href="#!"><i class="fab fa-instagram"></i></a>
-                                <a class="btn btn-outline-primary btn-sm-square border-2 me-2" href="#!"><i class="fab fa-linkedin-in"></i></a>
+                    <div class="mentor-card-custom">
+                        <div class="mentor-img-container">
+                            <span class="mentor-status-badge">Tersedia</span>
+                            <img src="{{ $mentor->profile_picture ? asset('storage/'.$mentor->profile_picture) : asset('mentee_assets/img/team-1.jpg') }}" alt="">
+                        </div>
+                        <div class="mentor-info-body">
+                            <h5 class="mentor-name">{{ $mentor->user->name }}</h5>
+                            <div class="mentor-location">
+                                <i class="bi bi-geo-alt-fill text-primary me-1"></i> {{ $mentor->domicile_city ?? 'Jakarta Selatan' }}
                             </div>
+                            
+                            <div class="mentor-tags mb-3">
+                                @php
+                                    // Dummy categories for UI matching
+                                    $tags = ['EXCHANGE PROGRAM', 'FULLY FUNDED'];
+                                @endphp
+                                @foreach($tags as $tag)
+                                    <span class="badge">{{ $tag }}</span>
+                                @endforeach
+                            </div>
+
+                            <p class="mentor-bio">"{{ Str::limit($mentor->bio, 60) }}"</p>
+
+                            <a href="{{ route('mentee.packages.index') }}" class="btn btn-mentor-primary">Pilih Mentor Ini</a>
                         </div>
                     </div>
                 </div>
-                </div>
+                <div class="text-start">
+                <a href="{{ route('mentee.student_guide.index') }}" class="btn btn-light py-3 px-5 fw-bold rounded-pill border">
+                    Cari Mentor Mu! <i class="fa fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+                @empty
+                <div class="col-12 text-center"><p class="text-muted">Mentor belum tersedia.</p></div>
+                @endforelse
+            </div>
         </div>
     </div>
+
+    {{-- PRICING SECTION --}}
     <div class="container-fluid py-5">
         <div class="container py-5">
             <div class="text-center wow fadeIn" data-wow-delay="0.1s">
                 <h1 class="mb-5">Our <span class="text-uppercase text-primary bg-light px-2">Pricing</span> Plan</h1>
             </div>
-            <div class="table-responsive wow fadeIn" data-wow-delay="0.3s">
-                <table class="table table-bordered table-striped text-center align-middle" style="min-width: 700px;">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped text-center align-middle">
                     <thead class="bg-primary text-white">
                         <tr>
-                            <th scope="col">Fitur</th>
-                            <th scope="col">Group Masterclass</th>
-                            <th scope="col">Private Class</th>
-                            <th scope="col">Breakthrough Package</th>
-                            <th scope="col">Ultimate Breakthrough Package<br>(cocok untuk 2-3 beasiswa)</th>
+                            <th>Fitur</th>
+                            <th>Group Masterclass</th>
+                            <th>Private Class</th>
+                            <th>Breakthrough Package</th>
+                            <th>Ultimate Package</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <th scope="row" class="text-start">Harga</th>
-                            <td>Rp. 70,000 per sesi</td>
-                            <td>Rp. 300,000 per sesi</td>
-                            <td>Rp. 2,500,000 / paket (3 bulan)</td>
-                            <td>Rp. 4,500,000 / paket (6 bulan)</td>
+                            <th class="text-start">Harga</th>
+                            <td>Rp. 70,000 / sesi</td>
+                            <td>Rp. 300,000 / sesi</td>
+                            <td>Rp. 2,500,000 / paket</td>
+                            <td>Rp. 4,500,000 / paket</td>
                         </tr>
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <div class="container-fluid bg-primary newsletter p-0">
-        <div class="container p-0">
-            <div class="row g-0 align-items-center">
-                <div class="col-md-5 ps-lg-0 text-start wow fadeIn" data-wow-delay="0.2s">
-                    <img class="img-fluid w-100" src="{{ asset('mentee_assets/img/newsletter.jpg') }}" alt="">
-                </div>
-                <div class="col-md-7 py-5 newsletter-text wow fadeIn" data-wow-delay="0.5s">
-                    <div class="p-5">
-                        <h1 class="mb-5">Langganan untuk cari <span class="text-uppercase text-primary bg-white px-2">Mentor</span></h1>
-                        <div class="position-relative w-100 mb-2">
-                            <input class="form-control border-0 w-100 ps-4 pe-5" type="text" placeholder="Enter Your Email" style="height: 60px;">
-                            <button type="button" class="btn shadow-none position-absolute top-0 end-0 mt-2 me-2"><i class="fa fa-paper-plane text-primary fs-4"></i></button>
-                        </div>
-                        <p class="mb-0">Diam sed sed dolor stet amet eirmod</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endsection
+
+@endsection
