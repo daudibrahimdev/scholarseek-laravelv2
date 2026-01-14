@@ -18,12 +18,12 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0 small">Sesi Bulan Ini</h5>
-                            <span class="h2 font-weight-bold mb-0 text-dark">{{ $totalSessions }}</span>
+                            <h5 class="card-title text-uppercase text-muted mb-0">Sesi Bulan Ini</h5>
+                            <span class="h2 font-weight-bold mb-0">{{ $totalSessions }}</span>
                         </div>
                         <div class="col-auto">
                             <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
-                                <i class="fas fa-calendar-alt"></i>
+                                <i class="ni ni-calendar-grid-58"></i>
                             </div>
                         </div>
                     </div>
@@ -37,8 +37,8 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0 small">Mentee Aktif</h5>
-                            <span class="h2 font-weight-bold mb-0 text-dark">{{ $activeMentees }}</span>
+                            <h5 class="card-title text-uppercase text-muted mb-0">Mentee Aktif</h5>
+                            <span class="h2 font-weight-bold mb-0">{{ $activeMentees }}</span>
                         </div>
                         <div class="col-auto">
                             <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
@@ -56,8 +56,8 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0 small">Rating</h5>
-                            <span class="h2 font-weight-bold mb-0 text-dark">{{ number_format($avgRating, 1) }}</span>
+                            <h5 class="card-title text-uppercase text-muted mb-0">Rating</h5>
+                            <span class="h2 font-weight-bold mb-0">{{ number_format($avgRating, 1) }}</span>
                         </div>
                         <div class="col-auto">
                             <div class="icon icon-shape bg-yellow text-white rounded-circle shadow">
@@ -75,7 +75,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0 small">Status Anda</h5>
+                            <h5 class="card-title text-uppercase text-muted mb-0">Status Anda</h5>
                             <span class="h2 font-weight-bold mb-0" 
                                   style="color: {{ $availabilityStatus ? '#2dce89' : '#f5365c' }} !important;">
                                 {{ $availabilityStatus ? 'Tersedia' : 'Cuti' }}
@@ -97,7 +97,7 @@
     <div class="row">
         {{-- Jadwal Sesi Mendatang --}}
         <div class="col-xl-8 mb-5 mb-xl-0">
-            <div class="card shadow border-0">
+            <div class="card shadow">
                 <div class="card-header border-0">
                     <div class="row align-items-center">
                         <div class="col"><h3 class="mb-0">Jadwal Sesi Mendatang</h3></div>
@@ -120,8 +120,8 @@
                             @forelse($upcomingSessions as $session)
                             <tr>
                                 <td>
-                                    {{-- Mengakses nama mentee secara aman --}}
-                                    {{ $session->participants->first()->mentee->name ?? 'N/A' }}
+                                    {{-- Mengambil nama dari participant pertama (asumsi 1on1) --}}
+                                    {{ $session->participants->first()->mentee->user->name ?? 'N/A' }}
                                 </td>
                                 <td>{{ $session->title }}</td>
                                 <td>{{ $session->start_time->format('d M, H:i') }} WIB</td>
@@ -132,7 +132,7 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="4" class="text-center py-4">Tidak ada jadwal terdekat.</td></tr>
+                            <tr><td colspan="4" class="text-center">Tidak ada jadwal terdekat.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -142,7 +142,7 @@
         
         {{-- Mentee Terbaru --}}
         <div class="col-xl-4">
-            <div class="card shadow border-0">
+            <div class="card shadow">
                 <div class="card-header border-0">
                     <div class="row align-items-center">
                         <div class="col"><h3 class="mb-0">Mentee Saya</h3></div>
@@ -159,12 +159,11 @@
                         <tbody>
                             @forelse($latestMentees as $p)
                             <tr>
-                                {{-- Perbaikan: Langsung panggil ->mentee->name --}}
-                                <th scope="row">{{ $p->mentee->name ?? 'User Tidak Ditemukan' }}</th>
+                                <th scope="row">{{ $p->mentee->user->name }}</th>
                                 <td>{{ $p->remaining_quota }} Sesi</td>
                             </tr>
                             @empty
-                            <tr><td colspan="2" class="text-center py-4">Belum ada mentee.</td></tr>
+                            <tr><td colspan="2" class="text-center">Belum ada mentee.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

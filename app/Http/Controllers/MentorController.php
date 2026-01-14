@@ -9,6 +9,7 @@ use App\Models\UserPackage;
 use App\Models\ScholarshipCategory;
 use Illuminate\Support\Facades\Auth;
 
+
 use App\Models\LearningSession;
 
 use Illuminate\Support\Facades\Storage;
@@ -20,7 +21,45 @@ class MentorController extends Controller
      */
     public function index()
     {
-        return view('mentor.dashboard.index');
+        $mentorId = auth()->user()->mentorProfile->id;
+
+        // 1. Statistik
+        $totalSessions = LearningSession::where('mentor_id', $mentorId)
+            ->whereMonth('start_time', now()->month)
+            ->count();
+
+        // PERBAIKAN: Ganti 'mentee_id' menjadi 'user_id'
+        $activeMentees = UserPackage::where('mentor_id', $mentorId)
+            ->where('remaining_quota', '>', 0)
+            ->distinct('user_id') 
+            ->count();
+
+        $avgRating = 5.0; 
+
+        // 2. Sesi Mendatang (Pastikan relasi di model LearningSession sudah benar)
+        $upcomingSessions = LearningSession::with('participants.mentee') // Hapus .user di sini
+            ->where('mentor_id', $mentorId)
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->where('end_time', '>', now())
+            ->orderBy('start_time', 'asc')
+            ->take(5)
+            ->get();
+
+        // 3. Mentee Terbaru
+        $latestMentees = UserPackage::with('mentee') // Cukup 'mentee' saja
+            ->where('mentor_id', $mentorId)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Jangan lupa path view-nya sesuai folder lo
+        return view('mentor.dashboard.index', compact(
+            'totalSessions', 
+            'activeMentees', 
+            'avgRating', 
+            'upcomingSessions', 
+            'latestMentees'
+        ));
     }
     // debugging method daftar mentee dll
     public function listAssignedMentees(Request $request)

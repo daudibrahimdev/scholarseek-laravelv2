@@ -66,4 +66,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function mentorProfile()
+    {
+        // Pastikan nama class modelnya 'Mentor' dan foreign key-nya 'user_id'
+        return $this->hasOne(Mentor::class, 'user_id');
+    }
 }
